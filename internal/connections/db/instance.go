@@ -6,6 +6,7 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	sqldblogger "github.com/simukti/sqldb-logger"
 	sqldbzerolog "github.com/simukti/sqldb-logger/logadapter/zerologadapter"
@@ -16,17 +17,15 @@ import (
 	"golang-boilerplate/internal/config"
 )
 
-// NewDB creates and configures a new sqlx.DB instance.
-// It connects to the database using the provided configuration,
-// enables optional debug logging, and applies connection pool settings.
-func NewDB(logger *zerolog.Logger, cfg *config.DB) (*sqlx.DB, error) {
+// NewDB initializes and configures a new sqlx.DB instance.
+func NewDB(cfg *config.DB, logger *zerolog.Logger) (*sqlx.DB, error) {
 	// Set the name mapper to convert Go struct fields to snake_case.
 	sqlx.NameMapper = strcase.ToSnake
 
 	// Create a base database connection.
 	sqlDB, err := sql.Open("mysql", cfg.DSN)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to create base database connection")
 	}
 
 	// Enable debug logging if configured.
@@ -46,7 +45,7 @@ func NewDB(logger *zerolog.Logger, cfg *config.DB) (*sqlx.DB, error) {
 			sqldblogger.WithTimeFormat(sqldblogger.TimeFormatRFC3339Nano),
 		}
 
-		// Attach logger options to the SQL driver.
+		// Wrap the SQL driver with logging capabilities.
 		sqlDB = sqldblogger.OpenDriver(cfg.DSN, sqlDB.Driver(), logAdapter, loggerOptions...)
 	}
 
@@ -55,7 +54,7 @@ func NewDB(logger *zerolog.Logger, cfg *config.DB) (*sqlx.DB, error) {
 
 	// Verify the connection to the database.
 	if err := db.Ping(); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to ping the database")
 	}
 
 	// Apply connection pool settings.
