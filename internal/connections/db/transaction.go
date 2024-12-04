@@ -4,42 +4,50 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 
 	"golang-boilerplate/internal/utils/logger"
 )
 
-// WithTransaction handles the lifecycle of a transaction (begin, commit, rollback).
-func WithTransaction(ctx context.Context, db DBExecutor, eventClass string, eventName string, fn func(tx *sqlx.Tx) error) (err error) {
-	// Check if we're already in a transaction
+// WithTransaction manages the lifecycle of a database transaction, including commit, rollback, and error propagation.
+// If already within a transaction, the existing one is reused.
+func WithTransaction(ctx context.Context, db DBExecutor, eventClass, eventName string, fn func(tx *sqlx.Tx) error) (err error) {
+	// Reuse the existing transaction if already in one.
 	if tx, ok := db.(*sqlx.Tx); ok {
-		// If already in a transaction, use it directly
 		return fn(tx)
 	}
 
-	// Start a new transaction
+	// Begin a new transaction.
 	tx, err := db.(*sqlx.DB).BeginTxx(ctx, nil)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to begin transaction")
 	}
 
+	// Ensure proper rollback or commit on function exit.
 	defer func() {
+		// Handle panic scenarios.
 		if p := recover(); p != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				l := logger.FromContext(ctx)
-				l.Error(ctx, eventClass, eventName, "tx.Rollback() failed: %v", rollbackErr.Error())
+				logger.FromContext(ctx).Error(ctx, eventClass, eventName, "transaction rollback failed during panic: %v", rollbackErr)
 			}
-			panic(p) // re-throw panic after Rollback
-		} else if err != nil {
+			panic(p) // Re-throw panic after rollback.
+		}
+
+		// Handle normal flow with error propagation.
+		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				l := logger.FromContext(ctx)
-				l.Error(ctx, eventClass, eventName, "tx.Rollback() failed: %v", rollbackErr.Error())
+				logger.FromContext(ctx).Error(ctx, eventClass, eventName, "transaction rollback failed: %v", rollbackErr)
+				err = errors.Wrapf(err, "original error with rollback failure: %v", rollbackErr)
 			}
 		} else {
-			err = tx.Commit() // if Commit returns error, update err
+			// Commit the transaction.
+			if commitErr := tx.Commit(); commitErr != nil {
+				err = errors.Wrap(commitErr, "failed to commit transaction")
+			}
 		}
 	}()
 
-	// Execute the provided function
+	// Execute the transactional function.
 	err = fn(tx)
 	return err
 }
