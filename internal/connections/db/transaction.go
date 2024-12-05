@@ -37,7 +37,7 @@ func WithTransaction(ctx context.Context, db DBExecutor, eventClass, eventName s
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
 				logger.FromContext(ctx).Error(ctx, eventClass, eventName, "transaction rollback failed: %v", rollbackErr)
-				err = errors.Wrapf(err, "original error with rollback failure: %v", rollbackErr)
+				err = errors.Wrapf(err, "transaction failed and rollback also failed: %v", rollbackErr)
 			}
 		} else {
 			// Commit the transaction.
