@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"golang-boilerplate/internal/config"
-
 	"github.com/rs/zerolog"
+
+	"golang-boilerplate/internal/pkg/config"
 )
 
 // Creates New Base logger and attach system context.

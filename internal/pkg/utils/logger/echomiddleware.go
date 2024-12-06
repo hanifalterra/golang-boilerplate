@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"golang-boilerplate/internal/config"
+	"golang-boilerplate/internal/pkg/config"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

@@ -3,9 +3,9 @@ package auth
 import (
 	"strconv"
 
-	"golang-boilerplate/internal/utils/rbac"
-
 	"github.com/labstack/echo/v4"
+
+	"golang-boilerplate/internal/pkg/utils/rbac"
 )
 
 func Middleware(enforcer rbac.RolesManager, obj, act string) echo.MiddlewareFunc {

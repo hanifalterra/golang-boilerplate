@@ -14,7 +14,7 @@ import (
 	// Import the MySQL driver
 	_ "github.com/go-sql-driver/mysql"
 
-	"golang-boilerplate/internal/config"
+	"golang-boilerplate/internal/pkg/config"
 )
 
 // NewDB initializes and configures a new sqlx.DB instance.

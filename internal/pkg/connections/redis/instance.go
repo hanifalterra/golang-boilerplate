@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 
-	"golang-boilerplate/internal/config"
+	"golang-boilerplate/internal/pkg/config"
 )
 
 // NewRedis initializes a Redis client.
