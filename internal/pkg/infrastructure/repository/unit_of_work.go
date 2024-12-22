@@ -1,11 +1,11 @@
-package db
+package repository
 
 import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
 
-	"golang-boilerplate/internal/pkg/connections/db"
+	"golang-boilerplate/internal/pkg/connections/database"
 )
 
 type UnitOfWork interface {
@@ -14,7 +14,7 @@ type UnitOfWork interface {
 }
 
 type unitOfWork struct {
-	db db.DBExecutor
+	db database.DBExecutor
 }
 
 func NewUnitOfWork(db *sqlx.DB) UnitOfWork {
@@ -24,7 +24,7 @@ func NewUnitOfWork(db *sqlx.DB) UnitOfWork {
 }
 
 func (uow *unitOfWork) Execute(ctx context.Context, fn func(uow UnitOfWork) error) error {
-	return db.WithTransaction(ctx, uow.db, "UnitOfWork", "Execute", func(tx *sqlx.Tx) error {
+	return database.WithTransaction(ctx, uow.db, "UnitOfWork", "Execute", func(tx *sqlx.Tx) error {
 		return fn(&unitOfWork{
 			db: tx,
 		})
