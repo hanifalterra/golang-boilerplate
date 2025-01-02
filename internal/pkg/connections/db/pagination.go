@@ -6,15 +6,16 @@ import (
 	"math"
 )
 
+// Pagination holds parameters and metadata for paginated queries.
 type Pagination struct {
-	Order     string // Order by clause for sorting the results.
-	Limit     int    // Number of rows per page.
-	Page      int    // Current page number.
-	TotalRow  int    // Total number of rows (set if CountRows is true).
-	TotalPage int    // Total number of pages (calculated from TotalRow and Limit).
+	Order      string `json:"order"`       // Order by clause for sorting the results.
+	Limit      int    `json:"limit"`       // Number of rows per page.
+	Page       int    `json:"page"`        // Current page number.
+	TotalRows  int    `json:"total_rows"`  // Total number of rows (if CountRows is true).
+	TotalPages int    `json:"total_pages"` // Total number of pages (calculated from TotalRow and Limit).
 }
 
-// Returns the SQL ORDER BY clause if an order is specified.
+// GetOrder constructs the SQL ORDER BY clause.
 func (p *Pagination) GetOrder() string {
 	if p.Order != "" {
 		return "ORDER BY " + p.Order
@@ -22,32 +23,46 @@ func (p *Pagination) GetOrder() string {
 	return ""
 }
 
-// Ensures a valid page is returned (default is 1 if not set).
+// GetPage ensures a valid page is returned.
 func (p *Pagination) GetPage() int {
-	if p.Page <= 0 { // Guard against zero or negative values.
+	if p.Page <= 0 {
 		p.Page = 1
 	}
 	return p.Page
 }
 
-// Ensures a valid limit is returned (default is 10 if not set).
+// GetLimit ensures a valid limit is returned.
 func (p *Pagination) GetLimit() int {
-	if p.Limit <= 0 { // Guard against zero or negative values.
+	if p.Limit <= 0 {
 		p.Limit = 10
 	}
 	return p.Limit
 }
 
-// Calculates the offset based on the current page and limit.
+// GetOffset calculates the offset for the SQL query.
 func (p *Pagination) GetOffset() int {
 	return (p.GetPage() - 1) * p.GetLimit()
 }
 
-// Executes a paginated query with optional row count.
-func Paginate(ctx context.Context, pagination *Pagination, db DBExecutor, baseSQL string, args []interface{}) error {
+// Paginate executes a paginated query with optional row counting and populates the results slice.
+func Paginate[T any](
+	ctx context.Context,
+	db DBExecutor,
+	baseSQL string,
+	args []interface{},
+	pagination *Pagination,
+	results *[]T,
+) error {
 	if db == nil {
 		return fmt.Errorf("db is nil")
 	}
+
+	// Count total rows.
+	sqlCount := fmt.Sprintf("SELECT COUNT(*) FROM (%s) AS count", baseSQL)
+	if err := db.QueryRowxContext(ctx, sqlCount, args...).Scan(&pagination.TotalRows); err != nil {
+		return fmt.Errorf("failed to count rows: %w", err)
+	}
+	pagination.TotalPages = int(math.Ceil(float64(pagination.TotalRows) / float64(pagination.GetLimit())))
 
 	// Construct the paginated SQL query.
 	sqlPaginated := fmt.Sprintf(
@@ -58,20 +73,26 @@ func Paginate(ctx context.Context, pagination *Pagination, db DBExecutor, baseSQ
 		pagination.GetOffset(),
 	)
 
-	// Count total rows if required.
-	if pagination.CountRows {
-		sqlCount := fmt.Sprintf("SELECT COUNT(*) FROM (%s) AS count", baseSQL)
-		if err := db.QueryRowxContext(ctx, sqlCount, args...).Scan(&pagination.TotalRow); err != nil {
-			return fmt.Errorf("failed to count rows: %w", err)
-		}
-		pagination.TotalPage = int(math.Ceil(float64(pagination.TotalRow) / float64(pagination.GetLimit())))
-	}
-
-	// Execute the paginated query and retrieve the rows.
+	// Execute the paginated query.
 	rows, err := db.QueryxContext(ctx, sqlPaginated, args...)
 	if err != nil {
 		return fmt.Errorf("failed to execute paginated query: %w", err)
 	}
-	pagination.Rows = rows
+	defer rows.Close()
+
+	// Populate the results slice.
+	var resultSlice []T
+	for rows.Next() {
+		var result T
+		if err := rows.StructScan(&result); err != nil {
+			return fmt.Errorf("failed to scan row into struct: %w", err)
+		}
+		resultSlice = append(resultSlice, result)
+	}
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("row iteration error: %w", err)
+	}
+
+	*results = resultSlice
 	return nil
 }
