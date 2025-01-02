@@ -80,19 +80,17 @@ func Paginate[T any](
 	}
 	defer rows.Close()
 
-	// Populate the results slice.
-	var resultSlice []T
+	// Populate the results.
 	for rows.Next() {
 		var result T
 		if err := rows.StructScan(&result); err != nil {
 			return fmt.Errorf("failed to scan row into struct: %w", err)
 		}
-		resultSlice = append(resultSlice, result)
+		*results = append(*results, result)
 	}
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf("row iteration error: %w", err)
 	}
 
-	*results = resultSlice
 	return nil
 }
