@@ -32,7 +32,7 @@ type CreateBillerRequest struct {
 	Label string `json:"label"`
 }
 
-func (b *CreateBillerRequest) ToDomain() *Biller {
+func (b *CreateBillerRequest) ToEntity() *Biller {
 	return &Biller{
 		Label: b.Label,
 	}
@@ -42,7 +42,7 @@ type UpdateBillerRequest struct {
 	Label string `json:"label"`
 }
 
-func (b *UpdateBillerRequest) ToDomain() *Biller {
+func (b *UpdateBillerRequest) ToEntity() *Biller {
 	return &Biller{
 		Label: b.Label,
 	}

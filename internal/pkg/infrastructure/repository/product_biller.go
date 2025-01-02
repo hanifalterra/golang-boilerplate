@@ -19,7 +19,7 @@ type ProductBillerRepository interface {
 	Delete(ctx context.Context, productID, billerID uint) error
 	GetOne(ctx context.Context, productID, billerID uint) (*models.ProductBiller, error)
 	GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error)
-	GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, int, error)
+	GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, *db.Pagination, error)
 }
 
 // productBillerRepository implements ProductBillerRepository.
@@ -34,7 +34,6 @@ func NewProductBillerRepository(db db.DBExecutor) ProductBillerRepository {
 	}
 }
 
-// Create inserts a new ProductBiller record into the database.
 func (r *productBillerRepository) Create(ctx context.Context, productBiller *models.ProductBiller) error {
 	const query = `
 		INSERT INTO product_billers 
@@ -44,28 +43,22 @@ func (r *productBillerRepository) Create(ctx context.Context, productBiller *mod
 
 	_, err := r.db.NamedExecContext(ctx, query, productBiller)
 	if err != nil {
-		// Check if the error is a MySQL-specific error
 		var mysqlErr *mysql.MySQLError
-		if errors.As(err, &mysqlErr) {
-			if mysqlErr.Number == 1062 {
-				// Parse and return a formatted duplicate entry error
-				duplicateField := utils_db.ParseDuplicateEntry(mysqlErr.Message)
-				return fmt.Errorf("duplicate entry detected: %s", duplicateField)
-			}
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			duplicateField := utils_db.ParseDuplicateEntry(mysqlErr.Message)
+			return fmt.Errorf("duplicate entry detected: %s", duplicateField)
 		}
-		// Return a wrapped error with context
 		return fmt.Errorf("failed to create product biller: %w", err)
 	}
 
 	return nil
 }
 
-// UpdateIsActive updates the `is_active` field for a given product and biller.
 func (r *productBillerRepository) Update(ctx context.Context, productID, billerID uint, productBiller *models.ProductBiller) error {
 	const query = `
 		UPDATE product_billers
 		SET is_active = :is_active, updated_at = NOW(6)
-		WHERE product_id = :product_id AND biller_id = :biller_id AND is_deleted = false
+		WHERE product_id = :product_id AND biller_id = :biller_id AND deleted_at IS NULL
 	`
 
 	params := map[string]interface{}{
@@ -76,7 +69,7 @@ func (r *productBillerRepository) Update(ctx context.Context, productID, billerI
 
 	_, err := r.db.NamedExecContext(ctx, query, params)
 	if err != nil {
-		return fmt.Errorf("failed to update is_active for product biller: %w", err)
+		return fmt.Errorf("failed to update product biller: %w", err)
 	}
 
 	return nil
@@ -85,8 +78,8 @@ func (r *productBillerRepository) Update(ctx context.Context, productID, billerI
 func (r *productBillerRepository) Delete(ctx context.Context, productID, billerID uint) error {
 	const query = `
 		UPDATE product_billers
-		SET is_deleted = true, updated_at = NOW(6)
-		WHERE product_id = :product_id AND biller_id = :biller_id AND is_deleted = false
+		SET deleted_at = NOW(6)
+		WHERE product_id = :product_id AND biller_id = :biller_id AND deleted_at IS NULL
 	`
 
 	params := map[string]interface{}{
@@ -96,23 +89,20 @@ func (r *productBillerRepository) Delete(ctx context.Context, productID, billerI
 
 	_, err := r.db.NamedExecContext(ctx, query, params)
 	if err != nil {
-		return fmt.Errorf("failed to soft delete product biller: %w", err)
+		return fmt.Errorf("failed to delete product biller: %w", err)
 	}
 
 	return nil
 }
 
-// getBaseQuery builds the base query for fetching ProductBiller records with filters.
 func (r *productBillerRepository) getBaseQuery(filter map[string]interface{}) (string, []interface{}) {
 	const baseQuery = `
 		SELECT product_id, biller_id, is_active, created_at, created_by, updated_at, updated_by
 		FROM product_billers
-		WHERE is_deleted = false
+		WHERE deleted_at IS NULL
 	`
 
-	// Use utils_mysql.ApplyFilters to add dynamic filters
-	query, args := utils_db.ApplyFilters(baseQuery, filter)
-	return query, args
+	return utils_db.ApplyFilters(baseQuery, filter)
 }
 
 func (r *productBillerRepository) GetOne(ctx context.Context, productID, billerID uint) (*models.ProductBiller, error) {
@@ -131,7 +121,6 @@ func (r *productBillerRepository) GetOne(ctx context.Context, productID, billerI
 	return &productBiller, nil
 }
 
-// GetMany retrieves multiple ProductBillers based on a set of filters.
 func (r *productBillerRepository) GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error) {
 	query, args := r.getBaseQuery(filter)
 
@@ -143,32 +132,14 @@ func (r *productBillerRepository) GetMany(ctx context.Context, filter map[string
 	return productBillers, nil
 }
 
-// GetManyWithPagination retrieves multiple ProductBillers with filters and pagination.
-func (r *productBillerRepository) GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, int, error) {
+func (r *productBillerRepository) GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, *db.Pagination, error) {
 	query, args := r.getBaseQuery(filter)
 
-	// Add pagination to the query
-	offset := (page - 1) * limit
-	query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, limit, offset)
-
-	// Fetch total count for pagination
-	countQuery := `
-		SELECT COUNT(*) AS total
-		FROM product_billers
-		WHERE is_deleted = false
-	`
-	countQuery, countArgs := utils_db.ApplyFilters(countQuery, filter)
-
-	var total int
-	if err := r.db.GetContext(ctx, &total, countQuery, countArgs...); err != nil {
-		return nil, 0, fmt.Errorf("failed to count product billers: %w", err)
-	}
-
-	// Fetch paginated data
+	pagination := &db.Pagination{Order: "id ASC", Page: page, Limit: limit}
 	var productBillers []*models.ProductBiller
-	if err := r.db.SelectContext(ctx, &productBillers, query, args...); err != nil {
-		return nil, 0, fmt.Errorf("failed to fetch product billers with pagination: %w", err)
+	if err := db.Paginate(ctx, r.db, query, args, pagination, &productBillers); err != nil {
+		return nil, nil, fmt.Errorf("failed to fetch product billers with pagination: %w", err)
 	}
 
-	return productBillers, total, nil
+	return productBillers, pagination, nil
 }

@@ -11,7 +11,7 @@ import (
 
 // WithTransaction manages the lifecycle of a database transaction, including commit, rollback, and error propagation.
 // If already within a transaction, the existing one is reused.
-func WithTransaction(ctx context.Context, db DBExecutor, eventClass, eventName string, fn func(tx *sqlx.Tx) error) (err error) {
+func WithTransaction(ctx context.Context, db DBExecutor, fn func(tx *sqlx.Tx) error) (err error) {
 	// Reuse the existing transaction if already in one.
 	if tx, ok := db.(*sqlx.Tx); ok {
 		return fn(tx)
@@ -28,7 +28,7 @@ func WithTransaction(ctx context.Context, db DBExecutor, eventClass, eventName s
 		// Handle panic scenarios.
 		if p := recover(); p != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				logger.FromContext(ctx).Error(ctx, eventClass, eventName, "transaction rollback failed during panic: %v", rollbackErr)
+				logger.FromContext(ctx).Error(ctx, "db", "WithTransaction", "transaction rollback failed after panic: %v", rollbackErr)
 			}
 			panic(p) // Re-throw panic after rollback.
 		}
@@ -36,8 +36,7 @@ func WithTransaction(ctx context.Context, db DBExecutor, eventClass, eventName s
 		// Handle normal flow with error propagation.
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				logger.FromContext(ctx).Error(ctx, eventClass, eventName, "transaction rollback failed: %v", rollbackErr)
-				err = errors.Wrapf(err, "transaction failed and rollback also failed: %v", rollbackErr)
+				logger.FromContext(ctx).Error(ctx, "db", "WithTransaction", "transaction rollback failed: %v", rollbackErr)
 			}
 		} else {
 			// Commit the transaction.

@@ -32,7 +32,7 @@ type CreateProductRequest struct {
 	Label string `json:"label"`
 }
 
-func (p *CreateProductRequest) ToDomain() *Product {
+func (p *CreateProductRequest) ToEntity() *Product {
 	return &Product{
 		Label: p.Label,
 	}
@@ -42,7 +42,7 @@ type UpdateProductRequest struct {
 	Label string `json:"label"`
 }
 
-func (p *UpdateProductRequest) ToDomain() *Product {
+func (p *UpdateProductRequest) ToEntity() *Product {
 	return &Product{
 		Label: p.Label,
 	}

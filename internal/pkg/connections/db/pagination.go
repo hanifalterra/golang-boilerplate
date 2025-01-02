@@ -56,6 +56,12 @@ func Paginate[T any](
 	if db == nil {
 		return fmt.Errorf("db is nil")
 	}
+	if pagination == nil {
+		return fmt.Errorf("pagination is nil")
+	}
+	if results == nil {
+		return fmt.Errorf("results slice is nil")
+	}
 
 	// Count total rows.
 	sqlCount := fmt.Sprintf("SELECT COUNT(*) FROM (%s) AS count", baseSQL)
@@ -80,7 +86,7 @@ func Paginate[T any](
 	}
 	defer rows.Close()
 
-	// Populate the results.
+	// Populate the results slice.
 	for rows.Next() {
 		var result T
 		if err := rows.StructScan(&result); err != nil {

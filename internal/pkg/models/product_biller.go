@@ -38,7 +38,7 @@ type CreateProductBillerRequest struct {
 	IsActive  bool `json:"is_active"`
 }
 
-func (pb *CreateProductBillerRequest) ToDomain() *ProductBiller {
+func (pb *CreateProductBillerRequest) ToEntity() *ProductBiller {
 	return &ProductBiller{
 		ProductID: pb.ProductID,
 		BillerID:  pb.BillerID,
@@ -50,7 +50,7 @@ type UpdateProductBillerRequest struct {
 	IsActive bool `json:"is_active"`
 }
 
-func (pb *UpdateProductBillerRequest) ToDomain() *ProductBiller {
+func (pb *UpdateProductBillerRequest) ToEntity() *ProductBiller {
 	return &ProductBiller{
 		IsActive: pb.IsActive,
 	}

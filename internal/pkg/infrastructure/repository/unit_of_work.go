@@ -24,7 +24,7 @@ func NewUnitOfWork(db *sqlx.DB) UnitOfWork {
 }
 
 func (uow *unitOfWork) Execute(ctx context.Context, fn func(uow UnitOfWork) error) error {
-	return db.WithTransaction(ctx, uow.db, "UnitOfWork", "Execute", func(tx *sqlx.Tx) error {
+	return db.WithTransaction(ctx, uow.db, func(tx *sqlx.Tx) error {
 		return fn(&unitOfWork{
 			db: tx,
 		})
