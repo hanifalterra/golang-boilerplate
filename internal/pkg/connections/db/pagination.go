@@ -4,18 +4,14 @@ import (
 	"context"
 	"fmt"
 	"math"
-
-	"github.com/jmoiron/sqlx"
 )
 
 type Pagination struct {
-	CountRows bool       // Whether to count total rows in the dataset.
-	Order     string     // Order by clause for sorting the results.
-	Limit     int        // Number of rows per page.
-	Page      int        // Current page number.
-	TotalRow  int        // Total number of rows (set if CountRows is true).
-	TotalPage int        // Total number of pages (calculated from TotalRow and Limit).
-	Rows      *sqlx.Rows // Result set for the paginated query.
+	Order     string // Order by clause for sorting the results.
+	Limit     int    // Number of rows per page.
+	Page      int    // Current page number.
+	TotalRow  int    // Total number of rows (set if CountRows is true).
+	TotalPage int    // Total number of pages (calculated from TotalRow and Limit).
 }
 
 // Returns the SQL ORDER BY clause if an order is specified.

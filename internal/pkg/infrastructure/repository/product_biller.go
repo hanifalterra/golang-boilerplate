@@ -15,9 +15,9 @@ import (
 // ProductBillerRepository defines the interface for managing ProductBiller entities.
 type ProductBillerRepository interface {
 	Create(ctx context.Context, productBiller *models.ProductBiller) error
-	Update(ctx context.Context, productID, billerID int, productBiller *models.ProductBiller) error
-	Delete(ctx context.Context, productID, billerID int) error
-	GetOne(ctx context.Context, productID, billerID int) (*models.ProductBiller, error)
+	Update(ctx context.Context, productID, billerID uint, productBiller *models.ProductBiller) error
+	Delete(ctx context.Context, productID, billerID uint) error
+	GetOne(ctx context.Context, productID, billerID uint) (*models.ProductBiller, error)
 	GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error)
 	GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, int, error)
 }
@@ -61,7 +61,7 @@ func (r *productBillerRepository) Create(ctx context.Context, productBiller *mod
 }
 
 // UpdateIsActive updates the `is_active` field for a given product and biller.
-func (r *productBillerRepository) Update(ctx context.Context, productID, billerID int, productBiller *models.ProductBiller) error {
+func (r *productBillerRepository) Update(ctx context.Context, productID, billerID uint, productBiller *models.ProductBiller) error {
 	const query = `
 		UPDATE product_billers
 		SET is_active = :is_active, updated_at = NOW(6)
@@ -82,7 +82,7 @@ func (r *productBillerRepository) Update(ctx context.Context, productID, billerI
 	return nil
 }
 
-func (r *productBillerRepository) Delete(ctx context.Context, productID, billerID int) error {
+func (r *productBillerRepository) Delete(ctx context.Context, productID, billerID uint) error {
 	const query = `
 		UPDATE product_billers
 		SET is_deleted = true, updated_at = NOW(6)
@@ -102,27 +102,6 @@ func (r *productBillerRepository) Delete(ctx context.Context, productID, billerI
 	return nil
 }
 
-// GetOne retrieves a single ProductBiller based on product and biller IDs.
-func (r *productBillerRepository) GetOne(ctx context.Context, productID, billerID int) (*models.ProductBiller, error) {
-	const query = `
-		SELECT product_id, biller_id, is_active, created_at, created_by, updated_at, updated_by
-		FROM product_billers
-		WHERE product_id = :product_id AND biller_id = :biller_id AND is_deleted = false
-	`
-
-	params := map[string]interface{}{
-		"product_id": productID,
-		"biller_id":  billerID,
-	}
-
-	var productBiller models.ProductBiller
-	if err := r.db.GetContext(ctx, &productBiller, query, params); err != nil {
-		return nil, fmt.Errorf("failed to fetch product biller: %w", err)
-	}
-
-	return &productBiller, nil
-}
-
 // getBaseQuery builds the base query for fetching ProductBiller records with filters.
 func (r *productBillerRepository) getBaseQuery(filter map[string]interface{}) (string, []interface{}) {
 	const baseQuery = `
@@ -134,6 +113,22 @@ func (r *productBillerRepository) getBaseQuery(filter map[string]interface{}) (s
 	// Use utils_mysql.ApplyFilters to add dynamic filters
 	query, args := utils_db.ApplyFilters(baseQuery, filter)
 	return query, args
+}
+
+func (r *productBillerRepository) GetOne(ctx context.Context, productID, billerID uint) (*models.ProductBiller, error) {
+	filter := map[string]interface{}{
+		"product_id": productID,
+		"biller_id":  billerID,
+	}
+
+	query, args := r.getBaseQuery(filter)
+
+	var productBiller models.ProductBiller
+	if err := r.db.GetContext(ctx, &productBiller, query, args...); err != nil {
+		return nil, fmt.Errorf("failed to fetch product biller: %w", err)
+	}
+
+	return &productBiller, nil
 }
 
 // GetMany retrieves multiple ProductBillers based on a set of filters.
