@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	db "golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/infrastructure/repository"
@@ -21,13 +22,21 @@ type ProductBillerService interface {
 
 // productBillerService implements ProductBillerService.
 type productBillerService struct {
-	repo repository.ProductBillerRepository
+	repo        repository.ProductBillerRepository
+	productRepo repository.ProductRepository
+	billerRepo  repository.BillerRepository
 }
 
 // NewProductBillerService creates a new instance of ProductBillerService.
-func NewProductBillerService(repo repository.ProductBillerRepository) ProductBillerService {
+func NewProductBillerService(
+	repo repository.ProductBillerRepository,
+	productRepo repository.ProductRepository,
+	billerRepo repository.BillerRepository,
+) ProductBillerService {
 	return &productBillerService{
-		repo: repo,
+		repo:        repo,
+		productRepo: productRepo,
+		billerRepo:  billerRepo,
 	}
 }
 
@@ -36,7 +45,21 @@ func (s *productBillerService) Create(ctx context.Context, productBiller *models
 		return errors.New("product biller is nil")
 	}
 
-	return s.repo.Create(ctx, productBiller)
+	_, err := s.productRepo.GetOne(ctx, productBiller.ProductID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch product with ID %d: %w", productBiller.ProductID, err)
+	}
+
+	_, err = s.billerRepo.GetOne(ctx, productBiller.BillerID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch biller with ID %d: %w", productBiller.BillerID, err)
+	}
+
+	if err := s.repo.Create(ctx, productBiller); err != nil {
+		return fmt.Errorf("failed to create product biller: %w", err)
+	}
+
+	return nil
 }
 
 func (s *productBillerService) Update(ctx context.Context, productID, billerID uint, productBiller *models.ProductBiller) error {

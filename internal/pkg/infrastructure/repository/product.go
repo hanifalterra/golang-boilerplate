@@ -85,22 +85,32 @@ func (r *productRepository) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (r *productRepository) getBaseQuery(filter map[string]interface{}) (string, []interface{}) {
+func (r *productRepository) getBaseQuery(filters map[string]interface{}) (string, []interface{}) {
 	const baseQuery = `
 		SELECT product_id, product_id, is_active, created_at, created_by, updated_at, updated_by
 		FROM products
 		WHERE deleted_at IS NULL
 	`
 
-	return utils_db.ApplyFilters(baseQuery, filter)
+	// Map to store structured filters with operators
+	processedFilters := make(map[string]utils_db.Filter)
+
+	// Add filters dynamically based on input
+	if id, ok := filters["id"].(uint); ok {
+		processedFilters["id"] = utils_db.Filter{Operator: "=", Value: id}
+	}
+	if label, ok := filters["label"].(string); ok {
+		processedFilters["label"] = utils_db.Filter{Operator: "LIKE", Value: "%" + label + "%"}
+	}
+
+	// Generate the final query and arguments
+	return utils_db.ApplyFilters(baseQuery, processedFilters)
 }
 
 func (r *productRepository) GetOne(ctx context.Context, id uint) (*models.Product, error) {
-	filter := map[string]interface{}{
+	query, args := r.getBaseQuery(map[string]interface{}{
 		"id": id,
-	}
-
-	query, args := r.getBaseQuery(filter)
+	})
 
 	var product models.Product
 	if err := r.db.GetContext(ctx, &product, query, args...); err != nil {

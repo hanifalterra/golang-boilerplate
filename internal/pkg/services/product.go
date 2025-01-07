@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	db "golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/infrastructure/repository"
@@ -22,12 +23,14 @@ type ProductService interface {
 // productService implements ProductService.
 type productService struct {
 	repo repository.ProductRepository
+	uow  repository.UnitOfWork
 }
 
 // NewProductService creates a new instance of ProductService.
-func NewProductService(repo repository.ProductRepository) ProductService {
+func NewProductService(repo repository.ProductRepository, uow repository.UnitOfWork) ProductService {
 	return &productService{
 		repo: repo,
+		uow:  uow,
 	}
 }
 
@@ -48,7 +51,23 @@ func (s *productService) Update(ctx context.Context, id uint, product *models.Pr
 }
 
 func (s *productService) Delete(ctx context.Context, id uint) error {
-	return s.repo.Delete(ctx, id)
+	err := s.uow.Execute(ctx, func(uow repository.UnitOfWork) error {
+		if err := uow.ProductBillerRepo().DeleteByProductID(ctx, id); err != nil {
+			return fmt.Errorf("failed to delete product billers for product ID %d: %w", id, err)
+		}
+
+		if err := uow.ProductRepo().Delete(ctx, id); err != nil {
+			return fmt.Errorf("failed to delete product with ID %d: %w", id, err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("transaction failed while deleting product with ID %d: %w", id, err)
+	}
+
+	return nil
 }
 
 func (s *productService) GetOne(ctx context.Context, id uint) (*models.Product, error) {

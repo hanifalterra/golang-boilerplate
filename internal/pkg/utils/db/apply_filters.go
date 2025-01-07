@@ -5,17 +5,22 @@ import (
 	"strings"
 )
 
-// ApplyFilters dynamically applies filters to a base query.
+type Filter struct {
+	Operator string
+	Value    interface{}
+}
+
+// ApplyFilters dynamically applies filters with various operators to a base query.
 // It returns the updated query and a slice of arguments.
-func ApplyFilters(baseQuery string, filters map[string]interface{}) (string, []interface{}) {
+func ApplyFilters(baseQuery string, filters map[string]Filter) (string, []interface{}) {
 	var conditions []string
 	var args []interface{}
 
 	// Iterate over the filters and add them to the query
-	for key, value := range filters {
-		// Use a placeholder for the value
-		conditions = append(conditions, fmt.Sprintf("%s = ?", key))
-		args = append(args, value)
+	for key, filter := range filters {
+		// Append the condition with the specified operator
+		conditions = append(conditions, fmt.Sprintf("%s %s ?", key, filter.Operator))
+		args = append(args, filter.Value)
 	}
 
 	// If there are conditions, append them to the query

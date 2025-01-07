@@ -10,7 +10,9 @@ import (
 
 type UnitOfWork interface {
 	Execute(ctx context.Context, fn func(uow UnitOfWork) error) (err error)
-	GetProductBillerRepo() ProductBillerRepository
+	ProductRepo() ProductRepository
+	BillerRepo() BillerRepository
+	ProductBillerRepo() ProductBillerRepository
 }
 
 type unitOfWork struct {
@@ -31,6 +33,14 @@ func (uow *unitOfWork) Execute(ctx context.Context, fn func(uow UnitOfWork) erro
 	})
 }
 
-func (uow *unitOfWork) GetProductBillerRepo() ProductBillerRepository {
+func (uow *unitOfWork) ProductRepo() ProductRepository {
+	return NewProductRepository(uow.db)
+}
+
+func (uow *unitOfWork) BillerRepo() BillerRepository {
+	return NewBillerRepository(uow.db)
+}
+
+func (uow *unitOfWork) ProductBillerRepo() ProductBillerRepository {
 	return NewProductBillerRepository(uow.db)
 }
