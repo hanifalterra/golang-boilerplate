@@ -13,9 +13,9 @@ import (
 // ProductBillerService defines the interface for the service layer of ProductBiller entities.
 type ProductBillerService interface {
 	Create(ctx context.Context, productBiller *models.ProductBiller) error
-	Update(ctx context.Context, productID, billerID uint, productBiller *models.ProductBiller) error
-	Delete(ctx context.Context, productID, billerID uint) error
-	GetOne(ctx context.Context, productID, billerID uint) (*models.ProductBiller, error)
+	Update(ctx context.Context, id uint, productBiller *models.ProductBiller) error
+	Delete(ctx context.Context, id uint) error
+	GetOne(ctx context.Context, id uint) (*models.ProductBiller, error)
 	GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error)
 	GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, *db.Pagination, error)
 }
@@ -62,20 +62,20 @@ func (s *productBillerService) Create(ctx context.Context, productBiller *models
 	return nil
 }
 
-func (s *productBillerService) Update(ctx context.Context, productID, billerID uint, productBiller *models.ProductBiller) error {
+func (s *productBillerService) Update(ctx context.Context, id uint, productBiller *models.ProductBiller) error {
 	if productBiller == nil {
 		return errors.New("product biller is nil")
 	}
 
-	return s.repo.Update(ctx, productID, billerID, productBiller)
+	return s.repo.Update(ctx, id, productBiller)
 }
 
-func (s *productBillerService) Delete(ctx context.Context, productID, billerID uint) error {
-	return s.repo.Delete(ctx, productID, billerID)
+func (s *productBillerService) Delete(ctx context.Context, id uint) error {
+	return s.repo.Delete(ctx, id)
 }
 
-func (s *productBillerService) GetOne(ctx context.Context, productID, billerID uint) (*models.ProductBiller, error) {
-	return s.repo.GetOne(ctx, productID, billerID)
+func (s *productBillerService) GetOne(ctx context.Context, id uint) (*models.ProductBiller, error) {
+	return s.repo.GetOne(ctx, id)
 }
 
 func (s *productBillerService) GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error) {

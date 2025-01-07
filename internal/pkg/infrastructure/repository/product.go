@@ -3,10 +3,10 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	db "golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/models"
-	utils_db "golang-boilerplate/internal/pkg/utils/db"
 )
 
 // ProductRepository defines the interface for managing Product entities.
@@ -86,25 +86,30 @@ func (r *productRepository) Delete(ctx context.Context, id uint) error {
 }
 
 func (r *productRepository) getBaseQuery(filters map[string]interface{}) (string, []interface{}) {
-	const baseQuery = `
-		SELECT product_id, product_id, is_active, created_at, created_by, updated_at, updated_by
+	var baseQuery = `
+		SELECT id, label, created_at, created_by, updated_at, updated_by
 		FROM products
-		WHERE deleted_at IS NULL
 	`
 
-	// Map to store structured filters with operators
-	processedFilters := make(map[string]utils_db.Filter)
+	var conditions []string
+	var args []interface{}
 
-	// Add filters dynamically based on input
+	conditions = append(conditions, "deleted_at IS NULL")
+
 	if id, ok := filters["id"].(uint); ok {
-		processedFilters["id"] = utils_db.Filter{Operator: "=", Value: id}
+		conditions = append(conditions, "id = ?")
+		args = append(args, id)
 	}
 	if label, ok := filters["label"].(string); ok {
-		processedFilters["label"] = utils_db.Filter{Operator: "LIKE", Value: "%" + label + "%"}
+		conditions = append(conditions, "label LIKE ?")
+		args = append(args, "%"+label+"%")
 	}
 
-	// Generate the final query and arguments
-	return utils_db.ApplyFilters(baseQuery, processedFilters)
+	if len(conditions) > 0 {
+		baseQuery = fmt.Sprintf("%s WHERE %s", baseQuery, strings.Join(conditions, " AND "))
+	}
+
+	return baseQuery, args
 }
 
 func (r *productRepository) GetOne(ctx context.Context, id uint) (*models.Product, error) {
