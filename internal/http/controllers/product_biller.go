@@ -4,10 +4,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 
 	"golang-boilerplate/internal/pkg/models"
 	service "golang-boilerplate/internal/pkg/services"
+	"golang-boilerplate/internal/pkg/utils/common"
 )
 
 // ProductBillerController defines the HTTP layer for ProductBiller entities.
@@ -24,12 +26,17 @@ func NewProductBillerController(service service.ProductBillerService) *ProductBi
 
 // Create handles POST requests to create a new ProductBiller.
 func (c *ProductBillerController) Create(ctx echo.Context) error {
-	var productBiller models.ProductBiller
-	if err := ctx.Bind(&productBiller); err != nil {
+	var productBiller *models.CreateProductBillerRequest
+	if err := ctx.Bind(productBiller); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
 	}
 
-	if err := c.service.Create(ctx.Request().Context(), &productBiller); err != nil {
+	validate := validator.New()
+	if err := validate.Struct(productBiller); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	if err := c.service.Create(ctx.Request().Context(), productBiller.ToEntity()); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -40,15 +47,20 @@ func (c *ProductBillerController) Create(ctx echo.Context) error {
 func (c *ProductBillerController) Update(ctx echo.Context) error {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	var productBiller models.ProductBiller
-	if err := ctx.Bind(&productBiller); err != nil {
+	var productBiller *models.UpdateProductBillerRequest
+	if err := ctx.Bind(productBiller); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid input")
 	}
 
-	if err := c.service.Update(ctx.Request().Context(), uint(id), &productBiller); err != nil {
+	validate := validator.New()
+	if err := validate.Struct(productBiller); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	if err := c.service.Update(ctx.Request().Context(), uint(id), productBiller.ToEntity()); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -59,21 +71,21 @@ func (c *ProductBillerController) Update(ctx echo.Context) error {
 func (c *ProductBillerController) Delete(ctx echo.Context) error {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
 	if err := c.service.Delete(ctx.Request().Context(), uint(id)); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return ctx.JSON(http.StatusOK, map[string]string{"message": "ProductBiller deleted successfully"})
+	return ctx.JSON(http.StatusOK, map[string]string{"message": "Product Biller deleted successfully"})
 }
 
 // GetOne handles GET requests to retrieve a single ProductBiller.
 func (c *ProductBillerController) GetOne(ctx echo.Context) error {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
 	productBiller, err := c.service.GetOne(ctx.Request().Context(), uint(id))
@@ -81,7 +93,7 @@ func (c *ProductBillerController) GetOne(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return ctx.JSON(http.StatusOK, productBiller)
+	return ctx.JSON(http.StatusOK, productBiller.ToResponse())
 }
 
 // GetMany handles GET requests to retrieve multiple ProductBillers based on filters.
@@ -99,13 +111,23 @@ func (c *ProductBillerController) GetMany(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return ctx.JSON(http.StatusOK, productBillers)
+	response := common.TransformSlice(productBillers, func(pb *models.ProductBiller) *models.ProductBillerResponse {
+		return pb.ToResponse()
+	})
+	return ctx.JSON(http.StatusOK, response)
 }
 
 // GetManyWithPagination handles GET requests to retrieve paginated ProductBillers.
 func (c *ProductBillerController) GetManyWithPagination(ctx echo.Context) error {
-	page, _ := strconv.Atoi(ctx.QueryParam("page"))
-	limit, _ := strconv.Atoi(ctx.QueryParam("limit"))
+	page, err := strconv.Atoi(ctx.QueryParam("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(ctx.QueryParam("limit"))
+	if err != nil || limit < 1 {
+		limit = 10
+	}
 
 	filter := make(map[string]interface{})
 	if productID := ctx.QueryParam("product_id"); productID != "" {
@@ -120,8 +142,11 @@ func (c *ProductBillerController) GetManyWithPagination(ctx echo.Context) error 
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
+	response := common.TransformSlice(productBillers, func(pb *models.ProductBiller) *models.ProductBillerResponse {
+		return pb.ToResponse()
+	})
 	return ctx.JSON(http.StatusOK, map[string]interface{}{
-		"data":       productBillers,
+		"data":       response,
 		"pagination": pagination,
 	})
 }

@@ -33,9 +33,9 @@ func (pb *ProductBiller) ToResponse() *ProductBillerResponse {
 }
 
 type CreateProductBillerRequest struct {
-	ProductID uint `json:"product_id"`
-	BillerID  uint `json:"biller_id"`
-	IsActive  bool `json:"is_active"`
+	ProductID uint `json:"product_id" validate:"required"`
+	BillerID  uint `json:"biller_id" validate:"required"`
+	IsActive  bool `json:"is_active" validate:"required"`
 }
 
 func (pb *CreateProductBillerRequest) ToEntity() *ProductBiller {
@@ -47,7 +47,7 @@ func (pb *CreateProductBillerRequest) ToEntity() *ProductBiller {
 }
 
 type UpdateProductBillerRequest struct {
-	IsActive bool `json:"is_active"`
+	IsActive bool `json:"is_active" validate:"required"`
 }
 
 func (pb *UpdateProductBillerRequest) ToEntity() *ProductBiller {

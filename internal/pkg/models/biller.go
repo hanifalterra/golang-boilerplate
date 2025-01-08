@@ -29,7 +29,7 @@ func (b *Biller) ToResponse() *BillerResponse {
 }
 
 type CreateBillerRequest struct {
-	Label string `json:"label"`
+	Label string `json:"label" validate:"required"`
 }
 
 func (b *CreateBillerRequest) ToEntity() *Biller {
@@ -39,7 +39,7 @@ func (b *CreateBillerRequest) ToEntity() *Biller {
 }
 
 type UpdateBillerRequest struct {
-	Label string `json:"label"`
+	Label string `json:"label" validate:"required"`
 }
 
 func (b *UpdateBillerRequest) ToEntity() *Biller {

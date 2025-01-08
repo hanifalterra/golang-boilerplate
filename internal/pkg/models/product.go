@@ -29,7 +29,7 @@ func (p *Product) ToResponse() *ProductResponse {
 }
 
 type CreateProductRequest struct {
-	Label string `json:"label"`
+	Label string `json:"label" validate:"required"`
 }
 
 func (p *CreateProductRequest) ToEntity() *Product {
@@ -39,7 +39,7 @@ func (p *CreateProductRequest) ToEntity() *Product {
 }
 
 type UpdateProductRequest struct {
-	Label string `json:"label"`
+	Label string `json:"label" validate:"required"`
 }
 
 func (p *UpdateProductRequest) ToEntity() *Product {
