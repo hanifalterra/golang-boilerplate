@@ -34,7 +34,7 @@ func RegisterRoutes(e *echo.Echo, db *sqlx.DB) {
 
 	// Version 1 routes
 	v1Group := api.Group("/v1")
-	v1.RegisterProductRoutes(v1Group, productController)
-	v1.RegisterBillerRoutes(v1Group, billerController)
-	v1.RegisterProductBillerRoutes(v1Group, productBillerController)
+	v1.RegisterProductRoute(v1Group, productController)
+	v1.RegisterBillerRoute(v1Group, billerController)
+	v1.RegisterProductBillerRoute(v1Group, productBillerController)
 }

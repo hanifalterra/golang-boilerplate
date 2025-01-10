@@ -6,7 +6,7 @@ import (
 	"golang-boilerplate/internal/http/controllers"
 )
 
-func RegisterProductBillerRoutes(e *echo.Group, productBillerController *controllers.ProductBillerController) {
+func RegisterProductBillerRoute(e *echo.Group, productBillerController *controllers.ProductBillerController) {
 	productBillerGroup := e.Group("/product-billers")
 	productBillerGroup.POST("", productBillerController.Create)
 	productBillerGroup.PUT("/:id", productBillerController.Update)
