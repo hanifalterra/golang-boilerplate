@@ -1,11 +1,11 @@
-package repository
+package repositories
 
 import (
 	"context"
 	"fmt"
 	"strings"
 
-	db "golang-boilerplate/internal/pkg/connections/db"
+	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/models"
 )
 

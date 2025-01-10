@@ -1,12 +1,12 @@
-package service
+package services
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
-	db "golang-boilerplate/internal/pkg/connections/db"
-	"golang-boilerplate/internal/pkg/infrastructure/repository"
+	"golang-boilerplate/internal/pkg/connections/db"
+	"golang-boilerplate/internal/pkg/infrastructure/repositories"
 	"golang-boilerplate/internal/pkg/models"
 )
 
@@ -22,16 +22,16 @@ type ProductBillerService interface {
 
 // productBillerService implements ProductBillerService.
 type productBillerService struct {
-	repo        repository.ProductBillerRepository
-	productRepo repository.ProductRepository
-	billerRepo  repository.BillerRepository
+	repo        repositories.ProductBillerRepository
+	productRepo repositories.ProductRepository
+	billerRepo  repositories.BillerRepository
 }
 
 // NewProductBillerService creates a new instance of ProductBillerService.
 func NewProductBillerService(
-	repo repository.ProductBillerRepository,
-	productRepo repository.ProductRepository,
-	billerRepo repository.BillerRepository,
+	repo repositories.ProductBillerRepository,
+	productRepo repositories.ProductRepository,
+	billerRepo repositories.BillerRepository,
 ) ProductBillerService {
 	return &productBillerService{
 		repo:        repo,

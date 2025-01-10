@@ -1,11 +1,11 @@
-package repository
+package repositories
 
 import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
 
-	db "golang-boilerplate/internal/pkg/connections/db"
+	"golang-boilerplate/internal/pkg/connections/db"
 )
 
 type UnitOfWork interface {

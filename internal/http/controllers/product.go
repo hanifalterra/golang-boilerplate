@@ -1,4 +1,4 @@
-package controller
+package controllers
 
 import (
 	"net/http"
@@ -8,19 +8,19 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"golang-boilerplate/internal/pkg/models"
-	service "golang-boilerplate/internal/pkg/services"
+	"golang-boilerplate/internal/pkg/services"
 	"golang-boilerplate/internal/pkg/utils/common"
 )
 
 // ProductController defines the HTTP layer for Product entities.
 type ProductController struct {
-	service service.ProductService
+	services services.ProductService
 }
 
 // NewProductController creates a new instance of ProductController.
-func NewProductController(service service.ProductService) *ProductController {
+func NewProductController(services services.ProductService) *ProductController {
 	return &ProductController{
-		service: service,
+		services: services,
 	}
 }
 
@@ -36,7 +36,7 @@ func (c *ProductController) Create(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.service.Create(ctx.Request().Context(), product.ToEntity()); err != nil {
+	if err := c.services.Create(ctx.Request().Context(), product.ToEntity()); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -60,7 +60,7 @@ func (c *ProductController) Update(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.service.Update(ctx.Request().Context(), uint(id), product.ToEntity()); err != nil {
+	if err := c.services.Update(ctx.Request().Context(), uint(id), product.ToEntity()); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -74,7 +74,7 @@ func (c *ProductController) Delete(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	if err := c.service.Delete(ctx.Request().Context(), uint(id)); err != nil {
+	if err := c.services.Delete(ctx.Request().Context(), uint(id)); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -88,7 +88,7 @@ func (c *ProductController) GetOne(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	product, err := c.service.GetOne(ctx.Request().Context(), uint(id))
+	product, err := c.services.GetOne(ctx.Request().Context(), uint(id))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -103,7 +103,7 @@ func (c *ProductController) GetMany(ctx echo.Context) error {
 		filter["label"] = label
 	}
 
-	products, err := c.service.GetMany(ctx.Request().Context(), filter)
+	products, err := c.services.GetMany(ctx.Request().Context(), filter)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -131,7 +131,7 @@ func (c *ProductController) GetManyWithPagination(ctx echo.Context) error {
 		filter["label"] = label
 	}
 
-	products, pagination, err := c.service.GetManyWithPagination(ctx.Request().Context(), filter, page, limit)
+	products, pagination, err := c.services.GetManyWithPagination(ctx.Request().Context(), filter, page, limit)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

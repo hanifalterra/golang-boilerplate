@@ -1,12 +1,12 @@
-package service
+package services
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
-	db "golang-boilerplate/internal/pkg/connections/db"
-	"golang-boilerplate/internal/pkg/infrastructure/repository"
+	"golang-boilerplate/internal/pkg/connections/db"
+	"golang-boilerplate/internal/pkg/infrastructure/repositories"
 	"golang-boilerplate/internal/pkg/models"
 )
 
@@ -22,12 +22,12 @@ type ProductService interface {
 
 // productService implements ProductService.
 type productService struct {
-	repo repository.ProductRepository
-	uow  repository.UnitOfWork
+	repo repositories.ProductRepository
+	uow  repositories.UnitOfWork
 }
 
 // NewProductService creates a new instance of ProductService.
-func NewProductService(repo repository.ProductRepository, uow repository.UnitOfWork) ProductService {
+func NewProductService(repo repositories.ProductRepository, uow repositories.UnitOfWork) ProductService {
 	return &productService{
 		repo: repo,
 		uow:  uow,
@@ -51,7 +51,7 @@ func (s *productService) Update(ctx context.Context, id uint, product *models.Pr
 }
 
 func (s *productService) Delete(ctx context.Context, id uint) error {
-	err := s.uow.Execute(ctx, func(uow repository.UnitOfWork) error {
+	err := s.uow.Execute(ctx, func(uow repositories.UnitOfWork) error {
 		if err := uow.ProductBillerRepo().DeleteByProductID(ctx, id); err != nil {
 			return fmt.Errorf("failed to delete product billers for product ID %d: %w", id, err)
 		}

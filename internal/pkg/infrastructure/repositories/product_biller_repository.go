@@ -1,4 +1,4 @@
-package repository
+package repositories
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 
-	db "golang-boilerplate/internal/pkg/connections/db"
+	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/models"
 	utils_db "golang-boilerplate/internal/pkg/utils/db"
 )

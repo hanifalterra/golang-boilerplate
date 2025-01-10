@@ -1,4 +1,4 @@
-package controller
+package controllers
 
 import (
 	"net/http"
@@ -8,19 +8,19 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"golang-boilerplate/internal/pkg/models"
-	service "golang-boilerplate/internal/pkg/services"
+	"golang-boilerplate/internal/pkg/services"
 	"golang-boilerplate/internal/pkg/utils/common"
 )
 
 // BillerController defines the HTTP layer for Biller entities.
 type BillerController struct {
-	service service.BillerService
+	services services.BillerService
 }
 
 // NewBillerController creates a new instance of BillerController.
-func NewBillerController(service service.BillerService) *BillerController {
+func NewBillerController(services services.BillerService) *BillerController {
 	return &BillerController{
-		service: service,
+		services: services,
 	}
 }
 
@@ -36,7 +36,7 @@ func (c *BillerController) Create(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.service.Create(ctx.Request().Context(), biller.ToEntity()); err != nil {
+	if err := c.services.Create(ctx.Request().Context(), biller.ToEntity()); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -60,7 +60,7 @@ func (c *BillerController) Update(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.service.Update(ctx.Request().Context(), uint(id), biller.ToEntity()); err != nil {
+	if err := c.services.Update(ctx.Request().Context(), uint(id), biller.ToEntity()); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -74,7 +74,7 @@ func (c *BillerController) Delete(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	if err := c.service.Delete(ctx.Request().Context(), uint(id)); err != nil {
+	if err := c.services.Delete(ctx.Request().Context(), uint(id)); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -88,7 +88,7 @@ func (c *BillerController) GetOne(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	biller, err := c.service.GetOne(ctx.Request().Context(), uint(id))
+	biller, err := c.services.GetOne(ctx.Request().Context(), uint(id))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -103,7 +103,7 @@ func (c *BillerController) GetMany(ctx echo.Context) error {
 		filter["label"] = label
 	}
 
-	billers, err := c.service.GetMany(ctx.Request().Context(), filter)
+	billers, err := c.services.GetMany(ctx.Request().Context(), filter)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -131,7 +131,7 @@ func (c *BillerController) GetManyWithPagination(ctx echo.Context) error {
 		filter["label"] = label
 	}
 
-	billers, pagination, err := c.service.GetManyWithPagination(ctx.Request().Context(), filter, page, limit)
+	billers, pagination, err := c.services.GetManyWithPagination(ctx.Request().Context(), filter, page, limit)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

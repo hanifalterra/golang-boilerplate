@@ -1,12 +1,12 @@
-package service
+package services
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
-	db "golang-boilerplate/internal/pkg/connections/db"
-	"golang-boilerplate/internal/pkg/infrastructure/repository"
+	"golang-boilerplate/internal/pkg/connections/db"
+	"golang-boilerplate/internal/pkg/infrastructure/repositories"
 	"golang-boilerplate/internal/pkg/models"
 )
 
@@ -22,12 +22,12 @@ type BillerService interface {
 
 // billerService implements BillerService.
 type billerService struct {
-	repo repository.BillerRepository
-	uow  repository.UnitOfWork
+	repo repositories.BillerRepository
+	uow  repositories.UnitOfWork
 }
 
 // NewBillerService creates a new instance of BillerService.
-func NewBillerService(repo repository.BillerRepository, uow repository.UnitOfWork) BillerService {
+func NewBillerService(repo repositories.BillerRepository, uow repositories.UnitOfWork) BillerService {
 	return &billerService{
 		repo: repo,
 		uow:  uow,
@@ -51,7 +51,7 @@ func (s *billerService) Update(ctx context.Context, id uint, biller *models.Bill
 }
 
 func (s *billerService) Delete(ctx context.Context, id uint) error {
-	err := s.uow.Execute(ctx, func(uow repository.UnitOfWork) error {
+	err := s.uow.Execute(ctx, func(uow repositories.UnitOfWork) error {
 		if err := uow.ProductBillerRepo().DeleteByBillerID(ctx, id); err != nil {
 			return fmt.Errorf("failed to delete product billers for biller ID %d: %w", id, err)
 		}
