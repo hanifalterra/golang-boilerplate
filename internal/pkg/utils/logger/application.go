@@ -13,7 +13,7 @@ import (
 )
 
 // Interface defines the logging interface.
-type Interface interface {
+type LoggerInterface interface {
 	Debug(ctx context.Context, eventClass, eventName, message string, args ...interface{})
 	Info(ctx context.Context, eventClass, eventName, message string, args ...interface{})
 	Warn(ctx context.Context, eventClass, eventName, message string, args ...interface{})
@@ -26,38 +26,20 @@ type Logger struct {
 	logger *zerolog.Logger
 }
 
+// Interface checker
 var (
-	_              Interface = (*Logger)(nil)
-	disabledLogger           = Nop()
+	_ LoggerInterface = (*Logger)(nil)
 )
 
+// contextKey is a private type for context keys to avoid collisions.
 type contextKey string
 
 const (
-	loggerCtxKey        contextKey = "logger"
-	contextKeyEventID   contextKey = "eventID"
-	contextKeyUser      contextKey = "user"
-	contextKeyStartTime contextKey = "startTime"
+	loggerCtxKey    contextKey = "logger"
+	eventIDCtxKey   contextKey = "eventID"
+	userCtxKey      contextKey = "user"
+	startTimeCtxKey contextKey = "startTime"
 )
-
-// Nop returns a disabled logger.
-func Nop() *Logger {
-	l := zerolog.New(nil).Level(zerolog.Disabled)
-	return &Logger{logger: &l}
-}
-
-// FromContext retrieves the logger from the context or returns a disabled logger.
-func FromContext(ctx context.Context) *Logger {
-	if logger, ok := ctx.Value(loggerCtxKey).(*Logger); ok {
-		return logger
-	}
-	return disabledLogger
-}
-
-// ContextResetTime resets the start time in the context.
-func ContextResetTime(ctx context.Context) context.Context {
-	return context.WithValue(ctx, contextKeyStartTime, time.Now())
-}
 
 // NewContextWithLogger creates a new logger and attaches it to the context.
 func NewContextWithLogger(ctx context.Context, log *zerolog.Logger, eventID string) (context.Context, *Logger) {
@@ -65,27 +47,24 @@ func NewContextWithLogger(ctx context.Context, log *zerolog.Logger, eventID stri
 		eventID = uuid.NewString()
 	}
 
-	ctx = context.WithValue(ctx, contextKeyEventID, eventID)
-	ctx = context.WithValue(ctx, contextKeyStartTime, time.Now())
+	ctx = context.WithValue(ctx, eventIDCtxKey, eventID)
+	ctx = context.WithValue(ctx, startTimeCtxKey, time.Now())
 
-	logger := log.With().
-		Str("eventID", eventID).
-		Logger().
-		Hook(TracingHook{})
-
+	logger := log.With().Str("eventID", eventID).Logger().Hook(TracingHook{})
 	l := &Logger{logger: &logger}
+
 	return context.WithValue(ctx, loggerCtxKey, l), l
 }
 
 // NewContextEchoWithLogger creates a logger with additional info from Echo context.
 func NewContextEchoWithLogger(c echo.Context, log *zerolog.Logger) (context.Context, *Logger) {
-	eventID := getEchoRequestID(c)
+	eventID := getRequestID(c)
 	user := auth.GetUser(c)
 	now := time.Now()
 
-	ctx := context.WithValue(context.Background(), contextKeyEventID, eventID)
-	ctx = context.WithValue(ctx, contextKeyUser, user)
-	ctx = context.WithValue(ctx, contextKeyStartTime, now)
+	ctx := context.WithValue(context.Background(), eventIDCtxKey, eventID)
+	ctx = context.WithValue(ctx, userCtxKey, user)
+	ctx = context.WithValue(ctx, startTimeCtxKey, now)
 
 	logger := log.With().
 		Str("eventID", eventID).
@@ -127,6 +106,17 @@ func (l *Logger) Fatal(ctx context.Context, eventClass, eventName, message strin
 func (l *Logger) log(ctx context.Context, level zerolog.Level, eventClass, eventName, message string, args ...interface{}) {
 	event := l.logger.WithLevel(level).Str("eventClass", eventClass).Str("event", eventName)
 
+	// Add elapsed time if available
+	if startTime, ok := ctx.Value(startTimeCtxKey).(time.Time); ok {
+		elapsedTime := time.Since(startTime).Milliseconds()
+		event = event.Int64("elapsedTime", elapsedTime)
+	}
+
+	// Add user information if available
+	if user, ok := ctx.Value(userCtxKey).(auth.User); ok {
+		event = event.Str("user", user.Username)
+	}
+
 	if len(args) == 0 {
 		event.Ctx(ctx).Msg(message)
 	} else {
@@ -140,10 +130,8 @@ type TracingHook struct{}
 // Run adds the elapsed time to the log event.
 func (h TracingHook) Run(e *zerolog.Event, _ zerolog.Level, _ string) {
 	ctx := e.GetCtx()
-	startTime, ok := ctx.Value(contextKeyStartTime).(time.Time)
-	if !ok {
-		startTime = time.Now()
+	if startTime, ok := ctx.Value(startTimeCtxKey).(time.Time); ok {
+		elapsedTime := time.Since(startTime).Milliseconds()
+		e.Int64("elapsedTime", elapsedTime)
 	}
-	elapsedTime := time.Since(startTime).Milliseconds()
-	e.Float64("elapsedTime", float64(elapsedTime))
 }

@@ -10,35 +10,31 @@ import (
 	"golang-boilerplate/internal/pkg/config"
 )
 
-// Creates New Base logger and attach system context.
+// New creates a new base logger and attaches system context.
 func New(cfg *config.Config, serviceName string) *zerolog.Logger {
-	var l zerolog.Level
-
+	// Map logger level from config
+	var level zerolog.Level
 	switch strings.ToLower(cfg.Logger.Level) {
 	case "error":
-		l = zerolog.ErrorLevel
+		level = zerolog.ErrorLevel
 	case "warn":
-		l = zerolog.WarnLevel
+		level = zerolog.WarnLevel
 	case "info":
-		l = zerolog.InfoLevel
+		level = zerolog.InfoLevel
 	case "debug":
-		l = zerolog.DebugLevel
+		level = zerolog.DebugLevel
 	default:
-		l = zerolog.InfoLevel
+		level = zerolog.InfoLevel
 	}
 
-	// Remark for when need to shorten filename
-	// zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
-	// 	_, b, _, _ := runtime.Caller(0)
-	// 	projectRoot := filepath.Dir(b)
-	// 	projectRoot = strings.Replace(projectRoot, "/utils/logger", "", 1)
-	// 	file = strings.Replace(file, projectRoot, "", 1)
-	// 	return file + ":" + strconv.Itoa(line)
-	// }
-
-	zerolog.SetGlobalLevel(l)
+	// Set global logger level
+	zerolog.SetGlobalLevel(level)
 	zerolog.TimeFieldFormat = time.RFC3339Nano
-	logger := zerolog.New(os.Stdout).Level(l).With().
+
+	// Create and return the logger instance
+	logger := zerolog.New(os.Stdout).
+		Level(level).
+		With().
 		Str("systemName", cfg.App.Name).
 		Str("systemVersion", cfg.App.Version).
 		Str("serviceName", serviceName).
