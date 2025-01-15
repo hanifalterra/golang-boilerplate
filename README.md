@@ -30,11 +30,12 @@ docker-compose -f docker-compose-development.yml up -d
 3. **Run the application:**
 You can run the application using either of these methods:
 	- Directly using Go:
-```bash
+	```bash
 go run cmd/http/main.go
 ```
+
 	- Using Makefile:
-```bash
+	```bash
 make run-http
 ```
 
@@ -51,25 +52,13 @@ To run the HTTP service, use:
 ```bash
 go run cmd/http/main.go
 ```
-or
-```bash
-make run-http
-```
 ### Worker Service
 To run the worker service, use:
 ```bash
 go run cmd/worker/main.go
 ```
-or
-```bash
-make run-worker
-```
 ### Cron Service
 To run the cron service, use:
 ```bash
 go run cmd/cron/main.go
-```
-or
-```bash
-make run-cron
 ```
