@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"golang-boilerplate/internal/pkg/utils/rbac"
+	"golang-boilerplate/internal/pkg/rbac"
 )
 
 func Middleware(enforcer rbac.RolesManager, obj, act string) echo.MiddlewareFunc {

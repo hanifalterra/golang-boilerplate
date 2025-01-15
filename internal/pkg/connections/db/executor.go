@@ -53,3 +53,9 @@ type DBExecutor interface {
 	// SelectContext executes a query and populates dest with the result set.
 	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }
+
+// Interface checker
+var (
+	_ DBExecutor = (*sqlx.DB)(nil)
+	_ DBExecutor = (*sqlx.Tx)(nil)
+)

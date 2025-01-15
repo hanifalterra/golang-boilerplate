@@ -10,7 +10,7 @@ import (
 
 	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/models"
-	utils_db "golang-boilerplate/internal/pkg/utils/db"
+	"golang-boilerplate/internal/pkg/utils"
 )
 
 // ProductBillerRepository defines the interface for managing ProductBiller entities.
@@ -48,7 +48,7 @@ func (r *productBillerRepository) Create(ctx context.Context, productBiller *mod
 	if err != nil {
 		var mysqlErr *mysql.MySQLError
 		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
-			duplicateField := utils_db.ParseDuplicateEntry(mysqlErr.Message)
+			duplicateField := utils.ParseDuplicateEntry(mysqlErr.Message)
 			return fmt.Errorf("duplicate entry detected: %s", duplicateField)
 		}
 		return fmt.Errorf("failed to create product biller: %w", err)

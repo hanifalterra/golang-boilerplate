@@ -6,7 +6,7 @@ import (
 	"golang-boilerplate/internal/http/routes"
 	"golang-boilerplate/internal/pkg/config"
 	"golang-boilerplate/internal/pkg/connections/db"
-	"golang-boilerplate/internal/pkg/utils/logger"
+	"golang-boilerplate/internal/pkg/logger"
 )
 
 const EVENTCLASS = "service"
@@ -22,7 +22,7 @@ func main() {
 	e := echo.New()
 
 	// Register Routes
-	routes.RegisterRoutes(e, db)
+	routes.RegisterRoutes(e, db, log)
 
 	// Start the server
 	e.Logger.Fatal(e.Start(":8080"))

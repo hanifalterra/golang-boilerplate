@@ -1,4 +1,4 @@
-package common
+package utils
 
 func TransformSlice[T any, U any](input []T, transform func(T) U) []U {
 	output := make([]U, len(input))

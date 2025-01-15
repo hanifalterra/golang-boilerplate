@@ -6,7 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
-	"golang-boilerplate/internal/pkg/utils/logger"
+	"golang-boilerplate/internal/pkg/logger"
 )
 
 // WithTransaction manages the lifecycle of a database transaction, including commit, rollback, and error propagation.
