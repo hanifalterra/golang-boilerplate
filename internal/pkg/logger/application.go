@@ -11,36 +11,36 @@ import (
 	"golang-boilerplate/internal/pkg/utils/auth"
 )
 
-// AppLogger defines the interface for structured logging with multiple log levels.
-type AppLogger interface {
-	Debug(ctx context.Context, eventClass, eventName, message string, args ...interface{})
-	Info(ctx context.Context, eventClass, eventName, message string, args ...interface{})
-	Warn(ctx context.Context, eventClass, eventName, message string, args ...interface{})
-	Error(ctx context.Context, eventClass, eventName, message string, args ...interface{})
-	Fatal(ctx context.Context, eventClass, eventName, message string, args ...interface{})
-}
-
-// appLogger is the concrete implementation of AppLogger using zerolog.
-type appLogger struct {
+// AppLogger wraps a zerolog.Logger for structured logging with context.
+type AppLogger struct {
 	logger *zerolog.Logger
 }
 
-// startTimeCtxKey is a type-safe key for storing start time in context.
+// Context keys for storing logger and start time.
+type loggerCtxKey struct{}
 type startTimeCtxKey struct{}
 
 // NewAppLogger initializes a new AppLogger with a unique event ID and attaches it to the context.
-func NewAppLogger(ctx context.Context, baseLogger *zerolog.Logger) (context.Context, AppLogger) {
+// It also records the current time for measuring elapsed time.
+func NewAppLogger(ctx context.Context, baseLogger *zerolog.Logger) (context.Context, *AppLogger) {
 	now := time.Now()
 	eventID := uuid.NewString()
 	ctx = context.WithValue(ctx, startTimeCtxKey{}, now)
 
-	logger := baseLogger.With().Str("eventID", eventID).Logger().Hook(TracingHook{})
+	logger := baseLogger.With().
+		Str("eventID", eventID).
+		Logger().
+		Hook(TracingHook{})
 
-	return ctx, &appLogger{logger: &logger}
+	// Store the logger in the context.
+	ctx = context.WithValue(ctx, loggerCtxKey{}, &AppLogger{logger: &logger})
+
+	return ctx, &AppLogger{logger: &logger}
 }
 
-// NewAppLoggerEcho initializes a new AppLogger with Echo context, including user credentials and request ID.
-func NewAppLoggerEcho(c echo.Context, baseLogger *zerolog.Logger) (context.Context, AppLogger) {
+// NewAppLoggerEcho initializes a new AppLogger with an Echo context.
+// It includes user credentials and request ID in the logger metadata.
+func NewAppLoggerEcho(c echo.Context, baseLogger *zerolog.Logger) (context.Context, *AppLogger) {
 	now := time.Now()
 	eventID := getRequestID(c)
 	ctx := context.WithValue(context.Background(), startTimeCtxKey{}, now)
@@ -51,10 +51,30 @@ func NewAppLoggerEcho(c echo.Context, baseLogger *zerolog.Logger) (context.Conte
 		Logger().
 		Hook(TracingHook{})
 
-	return ctx, &appLogger{logger: &logger}
+	// Store the logger in the context.
+	ctx = context.WithValue(ctx, loggerCtxKey{}, &AppLogger{logger: &logger})
+
+	return ctx, &AppLogger{logger: &logger}
 }
 
-// getRequestID retrieves the request ID from Echo's request or response headers.
+var nopLogger *AppLogger
+
+// init initializes a no-op logger to use as a fallback when no logger is found in the context.
+func init() {
+	nop := zerolog.Nop()
+	nopLogger = &AppLogger{logger: &nop}
+}
+
+// FromContext retrieves the AppLogger from the context.
+// If no logger is found, it returns a no-op logger that does nothing when called.
+func FromContext(ctx context.Context) *AppLogger {
+	if logger, ok := ctx.Value(loggerCtxKey{}).(*AppLogger); ok {
+		return logger
+	}
+	return nopLogger
+}
+
+// getRequestID retrieves the request ID from Echo's request headers.
 // If the request ID is not found in the request headers, it falls back to the response headers.
 func getRequestID(c echo.Context) string {
 	if reqID := c.Request().Header.Get(echo.HeaderXRequestID); reqID != "" {
@@ -63,33 +83,35 @@ func getRequestID(c echo.Context) string {
 	return c.Response().Header().Get(echo.HeaderXRequestID)
 }
 
-// Debug logs a message at the Debug level with context information.
-func (l *appLogger) Debug(ctx context.Context, eventClass, eventName, message string, args ...interface{}) {
+// Debug logs a message at the Debug level with event class and event name metadata.
+func (l *AppLogger) Debug(ctx context.Context, eventClass, eventName, message string, args ...interface{}) {
 	l.log(ctx, zerolog.DebugLevel, eventClass, eventName, message, args...)
 }
 
-// Info logs a message at the Info level with context information.
-func (l *appLogger) Info(ctx context.Context, eventClass, eventName, message string, args ...interface{}) {
+// Info logs a message at the Info level with event class and event name metadata.
+func (l *AppLogger) Info(ctx context.Context, eventClass, eventName, message string, args ...interface{}) {
 	l.log(ctx, zerolog.InfoLevel, eventClass, eventName, message, args...)
 }
 
-// Warn logs a message at the Warn level with context information.
-func (l *appLogger) Warn(ctx context.Context, eventClass, eventName, message string, args ...interface{}) {
+// Warn logs a message at the Warn level with event class and event name metadata.
+func (l *AppLogger) Warn(ctx context.Context, eventClass, eventName, message string, args ...interface{}) {
 	l.log(ctx, zerolog.WarnLevel, eventClass, eventName, message, args...)
 }
 
-// Error logs a message at the Error level with context information.
-func (l *appLogger) Error(ctx context.Context, eventClass, eventName, message string, args ...interface{}) {
+// Error logs a message at the Error level with event class and event name metadata.
+func (l *AppLogger) Error(ctx context.Context, eventClass, eventName, message string, args ...interface{}) {
 	l.log(ctx, zerolog.ErrorLevel, eventClass, eventName, message, args...)
 }
 
-// Fatal logs a message at the Fatal level, logs context information, and exits the application.
-func (l *appLogger) Fatal(ctx context.Context, eventClass, eventName, message string, args ...interface{}) {
+// Fatal logs a message at the Fatal level with event class and event name metadata,
+// and terminates the application.
+func (l *AppLogger) Fatal(ctx context.Context, eventClass, eventName, message string, args ...interface{}) {
 	l.log(ctx, zerolog.FatalLevel, eventClass, eventName, message, args...)
 }
 
-// log handles the logging process, including adding event metadata and formatting the message.
-func (l *appLogger) log(ctx context.Context, level zerolog.Level, eventClass, eventName, message string, args ...interface{}) {
+// log handles the logging process at the specified level,
+// adding event metadata such as event class and event name before logging the message.
+func (l *AppLogger) log(ctx context.Context, level zerolog.Level, eventClass, eventName, message string, args ...interface{}) {
 	logger := l.logger.With().
 		Str("eventClass", eventClass).
 		Str("event", eventName).
@@ -109,10 +131,11 @@ func (l *appLogger) log(ctx context.Context, level zerolog.Level, eventClass, ev
 	}
 }
 
-// TracingHook is a zerolog hook that adds tracing information (e.g., elapsed time) to log entries.
+// TracingHook is a zerolog hook that adds tracing information (such as elapsed time in milliseconds) to log entries.
 type TracingHook struct{}
 
-// Run is invoked by zerolog for each log event and adds elapsed time (in milliseconds) if start time is available in context.
+// Run is invoked by zerolog for each log event. It adds the elapsed time since the logger was created
+// if the start time is available in the context.
 func (h TracingHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
 	if ctx := e.GetCtx(); ctx != nil {
 		if startTime, ok := ctx.Value(startTimeCtxKey{}).(time.Time); ok {
