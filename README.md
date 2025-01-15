@@ -30,12 +30,12 @@ docker-compose -f docker-compose-development.yml up -d
 3. **Run the application:**
 You can run the application using either of these methods:
 	- Directly using Go:
-	```bash
+```bash
 go run cmd/http/main.go
 ```
 
 	- Using Makefile:
-	```bash
+```bash
 make run-http
 ```
 
