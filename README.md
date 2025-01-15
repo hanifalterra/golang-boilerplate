@@ -4,7 +4,6 @@ A robust, scalable Golang boilerplate for building HTTP services, workers, and c
 ## Features
 - **Modular structure** for `http`, `worker`, and `cron` services
 - **Dependency injection pattern** for managing service initialization
-- **Makefile** for simplified task automation
 - **Docker Compose** for local development with dependency services
 - Follows best practices for organizing code in the `internal` directory
 - `.env` file support for environment-specific configurations
@@ -14,7 +13,6 @@ A robust, scalable Golang boilerplate for building HTTP services, workers, and c
 ### Prerequisites
 - **Golang** installed
 - **Docker** & **Docker Compose** installed
-- **Make** (for using Makefile commands)
 
 ### First-Time Setup
 1. **Create a `.env` file:**
@@ -28,15 +26,9 @@ Run the following command to start the necessary services (e.g., database, messa
 docker-compose -f docker-compose-development.yml up -d
 ```
 3. **Run the application:**
-You can run the application using either of these methods:
-	- Directly using Go:
+You can run the application using this method:
 ```bash
 go run cmd/http/main.go
-```
-
-	- Using Makefile:
-```bash
-make run-http
 ```
 
 ## Dependency Injection Pattern

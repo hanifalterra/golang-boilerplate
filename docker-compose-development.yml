@@ -1,23 +1,21 @@
-version: '3.7'
-
 services:
     mariadb:
         image: yobasystems/alpine-mariadb:10.11.8
         environment:
             - MYSQL_ROOT_PASSWORD=root
-            - MYSQL_DATABASE=kraken-re
-            - MYSQL_USER=kraken
-            - MYSQL_PASSWORD=kraken
+            - MYSQL_DATABASE=golang-boilerplate
+            - MYSQL_USER=alterra
+            - MYSQL_PASSWORD=alterra
         ports:
-            - 3308:3306
+            - 3306:3306
         volumes:
             - ./data/docker/mysql:/var/lib/mysql
     redis:
-        image: redis:alpine
+        image: redis:7.4.2-alpine3.21
         hostname: redis
         command: ["redis-server", "--appendonly", "yes"]
         ports:
-            - 6381:6379
+            - 6379:6379
         volumes:
             - ./data/docker/redis:/data
     zookeeper:
@@ -35,7 +33,9 @@ services:
         environment:
             - KAFKA_BROKER_ID=1
             - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-            - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092 # your IP address (can use localhost if your exposed port 9092), because this host used to access kafka from the consumer
+            # PLAINTEXT_HOST should be your IP address and port (you can use localhost if using port 9092), 
+            # as this is the address used by consumers (CLI & service) to access Kafka.
+            - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
             - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
             - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
             - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
