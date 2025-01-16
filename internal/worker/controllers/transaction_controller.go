@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"golang-boilerplate/internal/pkg/models"
-	"golang-boilerplate/internal/pkg/services"
+	"golang-boilerplate/internal/worker/services"
 )
 
 // TransactionController handles Kafka messages and parses them into Transaction structs.

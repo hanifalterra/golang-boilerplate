@@ -9,10 +9,10 @@ import (
 
 	"golang-boilerplate/internal/http/controllers"
 	v1 "golang-boilerplate/internal/http/routes/api/v1"
+	"golang-boilerplate/internal/http/services"
 	"golang-boilerplate/internal/pkg/config"
 	"golang-boilerplate/internal/pkg/infrastructure/repositories"
 	"golang-boilerplate/internal/pkg/logger"
-	"golang-boilerplate/internal/pkg/services"
 )
 
 // RegisterRoutes sets up all HTTP routes, middleware, and services.

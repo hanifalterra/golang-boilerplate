@@ -8,9 +8,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 
+	"golang-boilerplate/internal/http/services"
 	"golang-boilerplate/internal/pkg/logger"
 	"golang-boilerplate/internal/pkg/models"
-	"golang-boilerplate/internal/pkg/services"
 	"golang-boilerplate/internal/pkg/utils"
 )
 

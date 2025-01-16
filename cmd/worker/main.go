@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"golang-boilerplate/internal/pkg/connections/kafka"
-	"golang-boilerplate/internal/pkg/services"
 	"golang-boilerplate/internal/worker/controllers"
+	"golang-boilerplate/internal/worker/services"
 )
 
 func main() {
