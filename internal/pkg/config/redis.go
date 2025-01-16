@@ -1,18 +1,14 @@
 package config
 
 type Redis struct {
-	DSN   string `env-required:"true" env:"REDIS_DSN"`
+	DSN   string `env:"REDIS_DSN" env-required:"true"`
 	Cache Cache
 	Lock  Lock
-	Queue Queue
 }
 
 type Cache struct {
-	DefaultTTL int `env-required:"true" env:"REDIS_CACHE_DEFAULT_TTL"`
+	DefaultTTL int `env:"REDIS_CACHE_DEFAULT_TTL" env-required:"true"`
 }
 
 type Lock struct {
-}
-
-type Queue struct {
 }

@@ -9,15 +9,14 @@ import (
 
 	"golang-boilerplate/internal/http/controllers"
 	v1 "golang-boilerplate/internal/http/routes/api/v1"
+	"golang-boilerplate/internal/pkg/config"
 	"golang-boilerplate/internal/pkg/infrastructure/repositories"
 	"golang-boilerplate/internal/pkg/logger"
 	"golang-boilerplate/internal/pkg/services"
 )
 
-const serviceName = "golang-boilerplate-http"
-
 // RegisterRoutes sets up all HTTP routes, middleware, and services.
-func RegisterRoutes(e *echo.Echo, db *sqlx.DB, log *zerolog.Logger) {
+func RegisterRoutes(e *echo.Echo, db *sqlx.DB, log *zerolog.Logger, config *config.Config) {
 	// General Middleware Configuration
 	e.HideBanner = true
 	e.Pre(middleware.RemoveTrailingSlash())
@@ -31,7 +30,7 @@ func RegisterRoutes(e *echo.Echo, db *sqlx.DB, log *zerolog.Logger) {
 		},
 	}))
 	e.Use(middleware.RequestID())
-	e.Use(echoprometheus.NewMiddleware(serviceName))
+	e.Use(echoprometheus.NewMiddleware(config.HTTPService.Name))
 	e.GET("/metrics", echoprometheus.NewHandler())
 
 	// Request Logging Middleware
