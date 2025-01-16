@@ -1,7 +1,9 @@
 package main
 
 import (
-	controller "golang-boilerplate/internal/cron/controllers"
+	"github.com/rs/zerolog/log"
+
+	"golang-boilerplate/internal/cron/controllers"
 	"golang-boilerplate/internal/cron/services"
 	"golang-boilerplate/internal/pkg/config"
 	"golang-boilerplate/internal/pkg/connections/db"
@@ -9,10 +11,6 @@ import (
 	"golang-boilerplate/internal/pkg/infrastructure/repositories"
 	"golang-boilerplate/internal/pkg/logger"
 	"golang-boilerplate/internal/pkg/utils"
-
-	"github.com/rs/zerolog/log"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
@@ -34,7 +32,7 @@ func main() {
 	productRepo := repositories.NewProductBillerRepository(dbConn)
 	telegramNotifier := notification.NewTelegramNotifier("https://api.telegram.org/bot<TOKEN>/sendMessage")
 	productService := services.NewProductBillerService(productRepo, telegramNotifier)
-	cronCtrl := controller.NewCronController(productService)
+	cronCtrl := controllers.NewCronController(productService)
 
 	cron := &utils.CronJob{Task: cronCtrl.RunDailyTask}
 	go cron.ScheduleDaily(9, 0)
