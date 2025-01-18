@@ -6,17 +6,16 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
-
-	"golang-boilerplate/internal/pkg/config"
+	"github.com/rs/zerolog/log"
 )
 
 // New creates and returns a new base logger instance with system context.
 // It initializes the logger level based on the provided configuration and attaches
 // additional metadata such as system name, version, and service name.
-func New(cfg *config.Config, serviceName string) *zerolog.Logger {
+func New(levelStr string, systemName string, systemVersion string, serviceName string) *zerolog.Logger {
 	// Map the logger level from the configuration.
 	var level zerolog.Level
-	switch strings.ToLower(cfg.Logger.Level) {
+	switch strings.ToLower(levelStr) {
 	case "debug":
 		level = zerolog.DebugLevel
 	case "info":
@@ -36,14 +35,13 @@ func New(cfg *config.Config, serviceName string) *zerolog.Logger {
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 
 	// Create the logger instance with the specified level and additional context.
-	logger := zerolog.New(os.Stdout).
-		Level(level).
+	log.Logger = zerolog.New(os.Stdout).
 		With().
-		Str("systemName", cfg.App.Name).
-		Str("systemVersion", cfg.App.Version).
+		Str("systemName", systemName).
+		Str("systemVersion", systemVersion).
 		Str("serviceName", serviceName).
 		Timestamp(). // Automatically include a timestamp in each log entry.
 		Logger()
 
-	return &logger
+	return &log.Logger
 }

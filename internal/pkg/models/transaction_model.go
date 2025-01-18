@@ -2,7 +2,9 @@ package models
 
 // Transaction represents the structure of the transaction message.
 type Transaction struct {
-	ID     string  `json:"id"`
-	Amount float64 `json:"amount"`
-	Status string  `json:"status"`
+	ID        uint   `json:"id"`
+	PartnerID uint   `json:"partner_id"`
+	ProductID uint   `json:"product_id"`
+	BillerID  uint   `json:"biller_id"`
+	Status    string `json:"status"`
 }

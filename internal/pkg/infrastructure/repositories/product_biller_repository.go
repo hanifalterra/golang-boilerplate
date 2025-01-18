@@ -20,9 +20,9 @@ type ProductBillerRepository interface {
 	Delete(ctx context.Context, id uint) error
 	DeleteByProductID(ctx context.Context, productID uint) error
 	DeleteByBillerID(ctx context.Context, billerID uint) error
-	GetOne(ctx context.Context, id uint) (*models.ProductBiller, error)
-	GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error)
-	GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, *db.Pagination, error)
+	FetchOne(ctx context.Context, id uint) (*models.ProductBiller, error)
+	FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error)
+	FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, *db.Pagination, error)
 }
 
 // productBillerRepository implements ProductBillerRepository.
@@ -165,7 +165,7 @@ func (r *productBillerRepository) getBaseQuery(filters map[string]interface{}) (
 	return baseQuery, args
 }
 
-func (r *productBillerRepository) GetOne(ctx context.Context, id uint) (*models.ProductBiller, error) {
+func (r *productBillerRepository) FetchOne(ctx context.Context, id uint) (*models.ProductBiller, error) {
 	query, args := r.getBaseQuery(map[string]interface{}{
 		"id": id,
 	})
@@ -178,7 +178,7 @@ func (r *productBillerRepository) GetOne(ctx context.Context, id uint) (*models.
 	return &productBiller, nil
 }
 
-func (r *productBillerRepository) GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error) {
+func (r *productBillerRepository) FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error) {
 	query, args := r.getBaseQuery(filter)
 
 	var productBillers []*models.ProductBiller
@@ -189,7 +189,7 @@ func (r *productBillerRepository) GetMany(ctx context.Context, filter map[string
 	return productBillers, nil
 }
 
-func (r *productBillerRepository) GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, *db.Pagination, error) {
+func (r *productBillerRepository) FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, *db.Pagination, error) {
 	query, args := r.getBaseQuery(filter)
 
 	pagination := &db.Pagination{Order: "id ASC", Page: page, Limit: limit}

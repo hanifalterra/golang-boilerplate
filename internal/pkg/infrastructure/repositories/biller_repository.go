@@ -14,9 +14,9 @@ type BillerRepository interface {
 	Create(ctx context.Context, biller *models.Biller) error
 	Update(ctx context.Context, id uint, biller *models.Biller) error
 	Delete(ctx context.Context, id uint) error
-	GetOne(ctx context.Context, id uint) (*models.Biller, error)
-	GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.Biller, error)
-	GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Biller, *db.Pagination, error)
+	FetchOne(ctx context.Context, id uint) (*models.Biller, error)
+	FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.Biller, error)
+	FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Biller, *db.Pagination, error)
 }
 
 // billerRepository implements BillerRepository.
@@ -112,7 +112,7 @@ func (r *billerRepository) getBaseQuery(filters map[string]interface{}) (string,
 	return baseQuery, args
 }
 
-func (r *billerRepository) GetOne(ctx context.Context, id uint) (*models.Biller, error) {
+func (r *billerRepository) FetchOne(ctx context.Context, id uint) (*models.Biller, error) {
 	query, args := r.getBaseQuery(map[string]interface{}{
 		"id": id,
 	})
@@ -125,7 +125,7 @@ func (r *billerRepository) GetOne(ctx context.Context, id uint) (*models.Biller,
 	return &biller, nil
 }
 
-func (r *billerRepository) GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.Biller, error) {
+func (r *billerRepository) FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.Biller, error) {
 	query, args := r.getBaseQuery(filter)
 
 	var billers []*models.Biller
@@ -136,7 +136,7 @@ func (r *billerRepository) GetMany(ctx context.Context, filter map[string]interf
 	return billers, nil
 }
 
-func (r *billerRepository) GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Biller, *db.Pagination, error) {
+func (r *billerRepository) FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Biller, *db.Pagination, error) {
 	query, args := r.getBaseQuery(filter)
 
 	pagination := &db.Pagination{Order: "id ASC", Page: page, Limit: limit}

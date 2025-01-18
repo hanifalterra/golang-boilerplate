@@ -28,7 +28,7 @@ func WithTransaction(ctx context.Context, db DBExecutor, fn func(tx *sqlx.Tx) er
 		// Handle panic scenarios.
 		if p := recover(); p != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				logger.FromContext(ctx).Error(ctx, "db", "WithTransaction", "transaction rollback failed after panic: %v", rollbackErr)
+				logger.FromContext(ctx).Error(ctx, "connections.db", "WithTransaction", "transaction rollback failed after panic: %v", rollbackErr)
 			}
 			panic(p) // Re-throw panic after rollback.
 		}
@@ -36,7 +36,7 @@ func WithTransaction(ctx context.Context, db DBExecutor, fn func(tx *sqlx.Tx) er
 		// Handle normal flow with error propagation.
 		if err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				logger.FromContext(ctx).Error(ctx, "db", "WithTransaction", "transaction rollback failed: %v", rollbackErr)
+				logger.FromContext(ctx).Error(ctx, "connections.db", "WithTransaction", "transaction rollback failed: %v", rollbackErr)
 			}
 		} else {
 			// Commit the transaction.

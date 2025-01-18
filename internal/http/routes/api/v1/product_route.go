@@ -11,7 +11,7 @@ func RegisterProductRoute(e *echo.Group, productController *controllers.ProductC
 	productGroup.POST("", productController.Create)
 	productGroup.PUT("/:id", productController.Update)
 	productGroup.DELETE("/:id", productController.Delete)
-	productGroup.GET("/:id", productController.GetOne)
-	productGroup.GET("/all", productController.GetMany)
-	productGroup.GET("", productController.GetManyWithPagination)
+	productGroup.GET("/:id", productController.FetchOne)
+	productGroup.GET("/all", productController.FetchMany)
+	productGroup.GET("", productController.FetchManyWithPagination)
 }

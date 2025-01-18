@@ -4,8 +4,9 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"golang-boilerplate/internal/cron/controllers"
-	"golang-boilerplate/internal/cron/services"
+	"golang-boilerplate/internal/cron/usecases"
 	"golang-boilerplate/internal/pkg/config"
+	"golang-boilerplate/internal/pkg/connections/cacabot"
 	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/infrastructure/notification"
 	"golang-boilerplate/internal/pkg/infrastructure/repositories"
@@ -21,7 +22,7 @@ func main() {
 	}
 
 	// Initialize logger
-	appLogger := logger.New(appConfig, appConfig.HTTPService.Name)
+	appLogger := logger.New(appConfig.Logger.Level, appConfig.App.Name, appConfig.App.Version, appConfig.CronService.Name)
 
 	// Initialize DB connection
 	dbConn, err := db.NewDB(&appConfig.DB, appLogger)
@@ -29,10 +30,12 @@ func main() {
 		appLogger.Fatal().Err(err).Msg("Failed to connect to the database")
 	}
 
+	cacabotClient := cacabot.NewCacabotClient(appConfig.Cacabot.URL, appConfig.Cacabot.Username, appConfig.Cacabot.Password, appConfig.Cacabot.Enabled)
+
 	productRepo := repositories.NewProductBillerRepository(dbConn)
-	telegramNotifier := notification.NewTelegramNotifier("https://api.telegram.org/bot<TOKEN>/sendMessage")
-	productService := services.NewProductBillerService(productRepo, telegramNotifier)
-	cronCtrl := controllers.NewCronController(productService)
+	notif := notification.NewNotification(cacabotClient)
+	productUseCase := usecases.NewProductBillerUseCase(productRepo, notif)
+	cronCtrl := controllers.NewCronController(productUseCase)
 
 	cron := &utils.CronJob{Task: cronCtrl.RunDailyTask}
 	go cron.ScheduleDaily(9, 0)

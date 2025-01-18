@@ -6,25 +6,25 @@ import (
 	"fmt"
 
 	"golang-boilerplate/internal/pkg/models"
-	"golang-boilerplate/internal/worker/services"
+	"golang-boilerplate/internal/worker/usecases"
 )
 
 // TransactionController handles Kafka messages and parses them into Transaction structs.
 type TransactionController struct {
-	service *services.TransactionService
+	usecase usecases.TransactionUseCase
 }
 
 // NewTransactionController creates a new TransactionController.
-func NewTransactionController(service *services.TransactionService) *TransactionController {
-	return &TransactionController{service: service}
+func NewTransactionController(usecase usecases.TransactionUseCase) *TransactionController {
+	return &TransactionController{usecase: usecase}
 }
 
-// HandleMessage parses a Kafka message and sends the Transaction to the service layer.
+// HandleMessage parses a Kafka message and sends the Transaction to the usecase layer.
 func (tc *TransactionController) HandleMessage(ctx context.Context, message []byte) error {
-	var transaction models.Transaction
-	if err := json.Unmarshal(message, &transaction); err != nil {
+	var transaction *models.Transaction
+	if err := json.Unmarshal(message, transaction); err != nil {
 		return fmt.Errorf("failed to parse message: %w", err)
 	}
 
-	return tc.service.ProcessTransaction(ctx, transaction)
+	return tc.usecase.ProcessTransaction(ctx, transaction)
 }

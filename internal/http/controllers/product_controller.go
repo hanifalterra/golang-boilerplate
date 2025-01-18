@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 
-	"golang-boilerplate/internal/http/services"
+	"golang-boilerplate/internal/http/usecases"
 	"golang-boilerplate/internal/pkg/logger"
 	"golang-boilerplate/internal/pkg/models"
 	"golang-boilerplate/internal/pkg/utils"
@@ -16,14 +16,14 @@ import (
 
 // ProductController defines the HTTP layer for Product entities.
 type ProductController struct {
-	services services.ProductService
+	usecases usecases.ProductUseCase
 	logger   *zerolog.Logger
 }
 
 // NewProductController creates a new instance of ProductController.
-func NewProductController(services services.ProductService, logger *zerolog.Logger) *ProductController {
+func NewProductController(usecases usecases.ProductUseCase, logger *zerolog.Logger) *ProductController {
 	return &ProductController{
-		services: services,
+		usecases: usecases,
 		logger:   logger,
 	}
 }
@@ -44,7 +44,7 @@ func (c *ProductController) Create(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.services.Create(reqCtx, product.ToEntity()); err != nil {
+	if err := c.usecases.Create(reqCtx, product.ToEntity()); err != nil {
 		logger.Error(reqCtx, eventClassProduct, "Create", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -71,7 +71,7 @@ func (c *ProductController) Update(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.services.Update(reqCtx, uint(id), product.ToEntity()); err != nil {
+	if err := c.usecases.Update(reqCtx, uint(id), product.ToEntity()); err != nil {
 		logger.Error(reqCtx, eventClassProduct, "Update", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -88,7 +88,7 @@ func (c *ProductController) Delete(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	if err := c.services.Delete(reqCtx, uint(id)); err != nil {
+	if err := c.usecases.Delete(reqCtx, uint(id)); err != nil {
 		logger.Error(reqCtx, eventClassProduct, "Delete", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -96,8 +96,8 @@ func (c *ProductController) Delete(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, map[string]string{"message": "Product deleted successfully"})
 }
 
-// GetOne handles GET requests to retrieve a single Product.
-func (c *ProductController) GetOne(ctx echo.Context) error {
+// FetchOne handles GET requests to retrieve a single Product.
+func (c *ProductController) FetchOne(ctx echo.Context) error {
 	reqCtx, logger := logger.NewAppLoggerEcho(ctx, c.logger)
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
@@ -105,17 +105,17 @@ func (c *ProductController) GetOne(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	product, err := c.services.GetOne(reqCtx, uint(id))
+	product, err := c.usecases.FetchOne(reqCtx, uint(id))
 	if err != nil {
-		logger.Error(reqCtx, eventClassProduct, "GetOne", err.Error())
+		logger.Error(reqCtx, eventClassProduct, "FetchOne", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return ctx.JSON(http.StatusOK, product.ToResponse())
 }
 
-// GetMany handles GET requests to retrieve multiple Products based on filters.
-func (c *ProductController) GetMany(ctx echo.Context) error {
+// FetchMany handles GET requests to retrieve multiple Products based on filters.
+func (c *ProductController) FetchMany(ctx echo.Context) error {
 	reqCtx, logger := logger.NewAppLoggerEcho(ctx, c.logger)
 
 	filter := make(map[string]interface{})
@@ -123,9 +123,9 @@ func (c *ProductController) GetMany(ctx echo.Context) error {
 		filter["label"] = label
 	}
 
-	products, err := c.services.GetMany(reqCtx, filter)
+	products, err := c.usecases.FetchMany(reqCtx, filter)
 	if err != nil {
-		logger.Error(reqCtx, eventClassProduct, "GetMany", err.Error())
+		logger.Error(reqCtx, eventClassProduct, "FetchMany", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -135,8 +135,8 @@ func (c *ProductController) GetMany(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-// GetManyWithPagination handles GET requests to retrieve paginated Products.
-func (c *ProductController) GetManyWithPagination(ctx echo.Context) error {
+// FetchManyWithPagination handles GET requests to retrieve paginated Products.
+func (c *ProductController) FetchManyWithPagination(ctx echo.Context) error {
 	reqCtx, logger := logger.NewAppLoggerEcho(ctx, c.logger)
 
 	page, err := strconv.Atoi(ctx.QueryParam("page"))
@@ -154,9 +154,9 @@ func (c *ProductController) GetManyWithPagination(ctx echo.Context) error {
 		filter["label"] = label
 	}
 
-	products, pagination, err := c.services.GetManyWithPagination(reqCtx, filter, page, limit)
+	products, pagination, err := c.usecases.FetchManyWithPagination(reqCtx, filter, page, limit)
 	if err != nil {
-		logger.Error(reqCtx, eventClassProduct, "GetManyWithPagination", err.Error())
+		logger.Error(reqCtx, eventClassProduct, "FetchManyWithPagination", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 

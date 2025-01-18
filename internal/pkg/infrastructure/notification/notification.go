@@ -1,38 +1,24 @@
 package notification
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"net/http"
+	"context"
+
+	"golang-boilerplate/internal/pkg/connections/cacabot"
+	"golang-boilerplate/internal/pkg/models"
 )
 
-type NotificationService interface {
-	SendMessage(message string) error
+type Notification interface {
+	SendCountProductBillers(ctx context.Context, payload models.CountProductBillerNotification) error
 }
 
-type TelegramNotifier struct {
-	APIURL string
+type notification struct {
+	client *cacabot.Client
 }
 
-func NewTelegramNotifier(apiURL string) NotificationService {
-	return &TelegramNotifier{APIURL: apiURL}
+func NewNotification(client *cacabot.Client) Notification {
+	return &notification{client: client}
 }
 
-func (t *TelegramNotifier) SendMessage(message string) error {
-	payload := map[string]string{
-		"message": message,
-	}
-	body, _ := json.Marshal(payload)
-
-	resp, err := http.Post(t.APIURL, "application/json", bytes.NewBuffer(body))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to send message, status code: %d", resp.StatusCode)
-	}
-	return nil
+func (n *notification) SendCountProductBillers(ctx context.Context, payload models.CountProductBillerNotification) error {
+	return n.client.SendMessage(ctx, "/count-product-billers", payload)
 }

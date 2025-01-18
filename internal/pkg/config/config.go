@@ -14,6 +14,8 @@ type Config struct {
 	CronService   CronService
 	DB            DB
 	Redis         Redis
+	Lock          Lock
+	Cacabot       Cacabot
 	Logger        Logger
 }
 

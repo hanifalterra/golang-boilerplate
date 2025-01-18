@@ -14,9 +14,9 @@ type ProductRepository interface {
 	Create(ctx context.Context, product *models.Product) error
 	Update(ctx context.Context, id uint, product *models.Product) error
 	Delete(ctx context.Context, id uint) error
-	GetOne(ctx context.Context, id uint) (*models.Product, error)
-	GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.Product, error)
-	GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Product, *db.Pagination, error)
+	FetchOne(ctx context.Context, id uint) (*models.Product, error)
+	FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.Product, error)
+	FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Product, *db.Pagination, error)
 }
 
 // productRepository implements ProductRepository.
@@ -112,7 +112,7 @@ func (r *productRepository) getBaseQuery(filters map[string]interface{}) (string
 	return baseQuery, args
 }
 
-func (r *productRepository) GetOne(ctx context.Context, id uint) (*models.Product, error) {
+func (r *productRepository) FetchOne(ctx context.Context, id uint) (*models.Product, error) {
 	query, args := r.getBaseQuery(map[string]interface{}{
 		"id": id,
 	})
@@ -125,7 +125,7 @@ func (r *productRepository) GetOne(ctx context.Context, id uint) (*models.Produc
 	return &product, nil
 }
 
-func (r *productRepository) GetMany(ctx context.Context, filter map[string]interface{}) ([]*models.Product, error) {
+func (r *productRepository) FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.Product, error) {
 	query, args := r.getBaseQuery(filter)
 
 	var products []*models.Product
@@ -136,7 +136,7 @@ func (r *productRepository) GetMany(ctx context.Context, filter map[string]inter
 	return products, nil
 }
 
-func (r *productRepository) GetManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Product, *db.Pagination, error) {
+func (r *productRepository) FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Product, *db.Pagination, error) {
 	query, args := r.getBaseQuery(filter)
 
 	pagination := &db.Pagination{Order: "id ASC", Page: page, Limit: limit}

@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 
-	"golang-boilerplate/internal/http/services"
+	"golang-boilerplate/internal/http/usecases"
 	"golang-boilerplate/internal/pkg/logger"
 	"golang-boilerplate/internal/pkg/models"
 	"golang-boilerplate/internal/pkg/utils"
@@ -16,14 +16,14 @@ import (
 
 // ProductBillerController defines the HTTP layer for ProductBiller entities.
 type ProductBillerController struct {
-	services services.ProductBillerService
+	usecases usecases.ProductBillerUseCase
 	logger   *zerolog.Logger
 }
 
 // NewProductBillerController creates a new instance of ProductBillerController.
-func NewProductBillerController(services services.ProductBillerService, logger *zerolog.Logger) *ProductBillerController {
+func NewProductBillerController(usecases usecases.ProductBillerUseCase, logger *zerolog.Logger) *ProductBillerController {
 	return &ProductBillerController{
-		services: services,
+		usecases: usecases,
 		logger:   logger,
 	}
 }
@@ -44,7 +44,7 @@ func (c *ProductBillerController) Create(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.services.Create(reqCtx, productBiller.ToEntity()); err != nil {
+	if err := c.usecases.Create(reqCtx, productBiller.ToEntity()); err != nil {
 		logger.Error(reqCtx, eventClassProductBiller, "Create", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -71,7 +71,7 @@ func (c *ProductBillerController) Update(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.services.Update(reqCtx, uint(id), productBiller.ToEntity()); err != nil {
+	if err := c.usecases.Update(reqCtx, uint(id), productBiller.ToEntity()); err != nil {
 		logger.Error(reqCtx, eventClassProductBiller, "Update", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -88,7 +88,7 @@ func (c *ProductBillerController) Delete(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	if err := c.services.Delete(reqCtx, uint(id)); err != nil {
+	if err := c.usecases.Delete(reqCtx, uint(id)); err != nil {
 		logger.Error(reqCtx, eventClassProductBiller, "Delete", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -96,8 +96,8 @@ func (c *ProductBillerController) Delete(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, map[string]string{"message": "Product Biller deleted successfully"})
 }
 
-// GetOne handles GET requests to retrieve a single ProductBiller.
-func (c *ProductBillerController) GetOne(ctx echo.Context) error {
+// FetchOne handles GET requests to retrieve a single ProductBiller.
+func (c *ProductBillerController) FetchOne(ctx echo.Context) error {
 	reqCtx, logger := logger.NewAppLoggerEcho(ctx, c.logger)
 
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
@@ -105,17 +105,17 @@ func (c *ProductBillerController) GetOne(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	productBiller, err := c.services.GetOne(reqCtx, uint(id))
+	productBiller, err := c.usecases.FetchOne(reqCtx, uint(id))
 	if err != nil {
-		logger.Error(reqCtx, eventClassProductBiller, "GetOne", err.Error())
+		logger.Error(reqCtx, eventClassProductBiller, "FetchOne", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return ctx.JSON(http.StatusOK, productBiller.ToResponse())
 }
 
-// GetMany handles GET requests to retrieve multiple ProductBillers based on filters.
-func (c *ProductBillerController) GetMany(ctx echo.Context) error {
+// FetchMany handles GET requests to retrieve multiple ProductBillers based on filters.
+func (c *ProductBillerController) FetchMany(ctx echo.Context) error {
 	reqCtx, logger := logger.NewAppLoggerEcho(ctx, c.logger)
 
 	filter := make(map[string]interface{})
@@ -126,9 +126,9 @@ func (c *ProductBillerController) GetMany(ctx echo.Context) error {
 		filter["biller_id"] = billerID
 	}
 
-	productBillers, err := c.services.GetMany(reqCtx, filter)
+	productBillers, err := c.usecases.FetchMany(reqCtx, filter)
 	if err != nil {
-		logger.Error(reqCtx, eventClassProductBiller, "GetMany", err.Error())
+		logger.Error(reqCtx, eventClassProductBiller, "FetchMany", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -138,8 +138,8 @@ func (c *ProductBillerController) GetMany(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, response)
 }
 
-// GetManyWithPagination handles GET requests to retrieve paginated ProductBillers.
-func (c *ProductBillerController) GetManyWithPagination(ctx echo.Context) error {
+// FetchManyWithPagination handles GET requests to retrieve paginated ProductBillers.
+func (c *ProductBillerController) FetchManyWithPagination(ctx echo.Context) error {
 	reqCtx, logger := logger.NewAppLoggerEcho(ctx, c.logger)
 
 	page, err := strconv.Atoi(ctx.QueryParam("page"))
@@ -160,9 +160,9 @@ func (c *ProductBillerController) GetManyWithPagination(ctx echo.Context) error 
 		filter["biller_id"] = billerID
 	}
 
-	productBillers, pagination, err := c.services.GetManyWithPagination(reqCtx, filter, page, limit)
+	productBillers, pagination, err := c.usecases.FetchManyWithPagination(reqCtx, filter, page, limit)
 	if err != nil {
-		logger.Error(reqCtx, eventClassProductBiller, "GetManyWithPagination", err.Error())
+		logger.Error(reqCtx, eventClassProductBiller, "FetchManyWithPagination", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 

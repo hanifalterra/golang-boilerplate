@@ -9,13 +9,13 @@ import (
 
 	"golang-boilerplate/internal/http/controllers"
 	v1 "golang-boilerplate/internal/http/routes/api/v1"
-	"golang-boilerplate/internal/http/services"
+	"golang-boilerplate/internal/http/usecases"
 	"golang-boilerplate/internal/pkg/config"
 	"golang-boilerplate/internal/pkg/infrastructure/repositories"
 	"golang-boilerplate/internal/pkg/logger"
 )
 
-// RegisterRoutes sets up all HTTP routes, middleware, and services.
+// RegisterRoutes sets up all HTTP routes, middleware, and usecases.
 func RegisterRoutes(e *echo.Echo, db *sqlx.DB, log *zerolog.Logger, config *config.Config) {
 	// General Middleware Configuration
 	e.HideBanner = true
@@ -51,15 +51,15 @@ func RegisterRoutes(e *echo.Echo, db *sqlx.DB, log *zerolog.Logger, config *conf
 	billerRepo := repositories.NewBillerRepository(db)
 	productBillerRepo := repositories.NewProductBillerRepository(db)
 
-	// Initialize Services
-	productService := services.NewProductService(productRepo, uow)
-	billerService := services.NewBillerService(billerRepo, uow)
-	productBillerService := services.NewProductBillerService(productBillerRepo, productRepo, billerRepo)
+	// Initialize UseCases
+	productUseCase := usecases.NewProductUseCase(productRepo, uow)
+	billerUseCase := usecases.NewBillerUseCase(billerRepo, uow)
+	productBillerUseCase := usecases.NewProductBillerUseCase(productBillerRepo, productRepo, billerRepo)
 
 	// Initialize Controllers
-	productCtrl := controllers.NewProductController(productService, log)
-	billerCtrl := controllers.NewBillerController(billerService, log)
-	productBillerCtrl := controllers.NewProductBillerController(productBillerService, log)
+	productCtrl := controllers.NewProductController(productUseCase, log)
+	billerCtrl := controllers.NewBillerController(billerUseCase, log)
+	productBillerCtrl := controllers.NewProductBillerController(productBillerUseCase, log)
 
 	// Register API Version 1 Routes
 	apiV1 := e.Group("/api/v1")

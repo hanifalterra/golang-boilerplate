@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// Initialize logger
-	appLogger := logger.New(appConfig, appConfig.HTTPService.Name)
+	appLogger := logger.New(appConfig.Logger.Level, appConfig.App.Name, appConfig.App.Version, appConfig.HTTPService.Name)
 
 	// Initialize DB connection
 	dbConn, err := db.NewDB(&appConfig.DB, appLogger)

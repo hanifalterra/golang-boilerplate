@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"golang-boilerplate/internal/pkg/auth"
 )
@@ -25,14 +26,15 @@ type startTimeCtxKey struct{}
 func NewAppLogger(ctx context.Context, baseLogger *zerolog.Logger) (context.Context, *AppLogger) {
 	now := time.Now()
 	eventID := uuid.NewString()
-	ctx = context.WithValue(ctx, startTimeCtxKey{}, now)
 
 	logger := baseLogger.With().
 		Str("eventID", eventID).
 		Logger().
 		Hook(TracingHook{})
 
+	ctx = context.WithValue(ctx, startTimeCtxKey{}, now)
 	ctx = context.WithValue(ctx, loggerCtxKey{}, &AppLogger{logger: &logger})
+
 	return ctx, &AppLogger{logger: &logger}
 }
 
@@ -41,7 +43,6 @@ func NewAppLogger(ctx context.Context, baseLogger *zerolog.Logger) (context.Cont
 func NewAppLoggerEcho(echoCtx echo.Context, baseLogger *zerolog.Logger) (context.Context, *AppLogger) {
 	now := time.Now()
 	eventID := getRequestID(echoCtx)
-	ctx := context.WithValue(echoCtx.Request().Context(), startTimeCtxKey{}, now)
 
 	logger := baseLogger.With().
 		Str("eventID", eventID).
@@ -49,25 +50,19 @@ func NewAppLoggerEcho(echoCtx echo.Context, baseLogger *zerolog.Logger) (context
 		Logger().
 		Hook(TracingHook{})
 
+	ctx := context.WithValue(echoCtx.Request().Context(), startTimeCtxKey{}, now)
 	ctx = context.WithValue(ctx, loggerCtxKey{}, &AppLogger{logger: &logger})
+
 	return ctx, &AppLogger{logger: &logger}
 }
 
-var nopLogger *AppLogger
-
-// init initializes a no-op logger to use as a fallback when no logger is found in the context.
-func init() {
-	nop := zerolog.Nop()
-	nopLogger = &AppLogger{logger: &nop}
-}
-
 // FromContext retrieves the AppLogger from the context.
-// If no logger is found, it returns a no-op logger.
+// If no logger is found, it returns a zerolog global logger.
 func FromContext(ctx context.Context) *AppLogger {
 	if logger, ok := ctx.Value(loggerCtxKey{}).(*AppLogger); ok {
 		return logger
 	}
-	return nopLogger
+	return &AppLogger{logger: &log.Logger}
 }
 
 // getRequestID retrieves the request ID from Echo's request headers.
