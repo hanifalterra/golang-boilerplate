@@ -8,7 +8,7 @@ import (
 )
 
 type Notification interface {
-	SendCountProductBillers(ctx context.Context, payload models.CountProductBillerNotification) error
+	SendProductBillerSummary(ctx context.Context, payload models.ProductBillerSummaryNotification) error
 }
 
 type notification struct {
@@ -19,6 +19,6 @@ func NewNotification(client *cacabot.Client) Notification {
 	return &notification{client: client}
 }
 
-func (n *notification) SendCountProductBillers(ctx context.Context, payload models.CountProductBillerNotification) error {
-	return n.client.SendMessage(ctx, "/count-product-billers", payload)
+func (n *notification) SendProductBillerSummary(ctx context.Context, payload models.ProductBillerSummaryNotification) error {
+	return n.client.SendMessage(ctx, "/product-biller-summary", payload)
 }

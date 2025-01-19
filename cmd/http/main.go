@@ -10,8 +10,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
+	"golang-boilerplate/internal/http/config"
 	"golang-boilerplate/internal/http/routes"
-	"golang-boilerplate/internal/pkg/config"
 	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/logger"
 )
@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// Initialize logger
-	appLogger := logger.New(appConfig.Logger.Level, appConfig.App.Name, appConfig.App.Version, appConfig.HTTPService.Name)
+	appLogger := logger.New(appConfig.Logger.Level, appConfig.App.Name, appConfig.App.Version, appConfig.Service.Name)
 
 	// Initialize DB connection
 	dbConn, err := db.NewDB(&appConfig.DB, appLogger)
@@ -38,7 +38,7 @@ func main() {
 
 	// Run the server in a separate goroutine
 	go func() {
-		if err := server.Start(":" + appConfig.HTTPService.Port); err != nil {
+		if err := server.Start(":" + appConfig.Service.Port); err != nil {
 			appLogger.Fatal().Err(err).Msg("Failed to start the server")
 		}
 	}()

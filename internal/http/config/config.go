@@ -5,39 +5,24 @@ import (
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
+
+	"golang-boilerplate/internal/pkg/config"
 )
 
 type Config struct {
-	App           App
-	HTTPService   HTTPService
-	WorkerService WorkerService
-	CronService   CronService
-	DB            DB
-	Redis         Redis
-	Lock          Lock
-	Cacabot       Cacabot
-	Logger        Logger
+	App     config.App
+	Service Service
+	DB      config.DB
+	Redis   config.Redis
+	Lock    config.Lock
+	Cacabot config.Cacabot
+	Logger  config.Logger
 }
 
-type App struct {
-	Name    string `env:"APP_NAME" env-default:"Golang-Boilerplate"`
-	Version string `env:"APP_VERSION" env-required:"true"`
-}
-
-type HTTPService struct {
+type Service struct {
 	Name      string `env:"HTTP_SERVICE_NAME" env-default:"http"`
 	Port      string `env:"HTTP_SERVICE_PORT" env-default:"8080"`
 	JwtSecret string `env:"HTTP_SERVICE_JWT_SECRET" env-required:"true"`
-}
-
-type WorkerService struct {
-	Name string `env:"WORKER_SERVICE_NAME" env-default:"worker"`
-	Port string `env:"WORKER_SERVICE_PORT" env-default:"8080"`
-}
-
-type CronService struct {
-	Name string `env:"CRON_SERVICE_NAME" env-default:"cron"`
-	Port string `env:"CRON_SERVICE_PORT" env-default:"8080"`
 }
 
 // NewConfig initializes and returns the application configuration.

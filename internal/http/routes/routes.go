@@ -7,10 +7,10 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
 
+	"golang-boilerplate/internal/http/config"
 	"golang-boilerplate/internal/http/controllers"
 	v1 "golang-boilerplate/internal/http/routes/api/v1"
 	"golang-boilerplate/internal/http/usecases"
-	"golang-boilerplate/internal/pkg/config"
 	"golang-boilerplate/internal/pkg/infrastructure/repositories"
 	"golang-boilerplate/internal/pkg/logger"
 )
@@ -30,7 +30,7 @@ func RegisterRoutes(e *echo.Echo, db *sqlx.DB, log *zerolog.Logger, config *conf
 		},
 	}))
 	e.Use(middleware.RequestID())
-	e.Use(echoprometheus.NewMiddleware(config.HTTPService.Name))
+	e.Use(echoprometheus.NewMiddleware(config.Service.Name))
 	e.GET("/metrics", echoprometheus.NewHandler())
 
 	// Request Logging Middleware

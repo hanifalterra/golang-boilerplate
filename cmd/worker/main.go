@@ -6,13 +6,13 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"golang-boilerplate/internal/pkg/config"
 	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/connections/kafka"
 	"golang-boilerplate/internal/pkg/connections/redis"
 	"golang-boilerplate/internal/pkg/infrastructure/lock"
 	"golang-boilerplate/internal/pkg/infrastructure/repositories"
 	"golang-boilerplate/internal/pkg/logger"
+	"golang-boilerplate/internal/worker/config"
 	"golang-boilerplate/internal/worker/controllers"
 	"golang-boilerplate/internal/worker/usecases"
 )
@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Initialize logger
-	appLogger := logger.New(appConfig.Logger.Level, appConfig.App.Name, appConfig.App.Version, appConfig.WorkerService.Name)
+	appLogger := logger.New(appConfig.Logger.Level, appConfig.App.Name, appConfig.App.Version, appConfig.Service.Name)
 
 	// Kafka configuration.
 	brokers := "localhost:9092"

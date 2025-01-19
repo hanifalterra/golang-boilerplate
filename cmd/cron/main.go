@@ -3,9 +3,9 @@ package main
 import (
 	"github.com/rs/zerolog/log"
 
+	"golang-boilerplate/internal/cron/config"
 	"golang-boilerplate/internal/cron/controllers"
 	"golang-boilerplate/internal/cron/usecases"
-	"golang-boilerplate/internal/pkg/config"
 	"golang-boilerplate/internal/pkg/connections/cacabot"
 	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/infrastructure/notification"
@@ -15,31 +15,55 @@ import (
 )
 
 func main() {
-	// Load configuration
-	appConfig, err := config.NewConfig()
+	// Load application configuration
+	config, err := config.NewConfig()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to load configuration")
+		log.Fatal().Err(err).Msg("Failed to load application configuration")
 	}
 
 	// Initialize logger
-	appLogger := logger.New(appConfig.Logger.Level, appConfig.App.Name, appConfig.App.Version, appConfig.CronService.Name)
+	logger := logger.New(
+		config.Logger.Level,
+		config.App.Name,
+		config.App.Version,
+		config.Service.Name,
+	)
 
-	// Initialize DB connection
-	dbConn, err := db.NewDB(&appConfig.DB, appLogger)
+	// Establish database connection
+	dbConn, err := db.NewDB(&config.DB, logger)
 	if err != nil {
-		appLogger.Fatal().Err(err).Msg("Failed to connect to the database")
+		logger.Fatal().Err(err).Msg("Database connection failed")
 	}
 
-	cacabotClient := cacabot.NewCacabotClient(appConfig.Cacabot.URL, appConfig.Cacabot.Username, appConfig.Cacabot.Password, appConfig.Cacabot.Enabled)
+	// Initialize Cacabot client
+	cacabotClient := cacabot.NewCacabotClient(
+		config.Cacabot.URL,
+		config.Cacabot.Username,
+		config.Cacabot.Password,
+		config.Cacabot.Enabled,
+	)
 
+	// Initialize repositories
 	productRepo := repositories.NewProductBillerRepository(dbConn)
+
+	// Initialize notification infrastructure
 	notif := notification.NewNotification(cacabotClient)
-	productUseCase := usecases.NewProductBillerUseCase(productRepo, notif)
-	cronCtrl := controllers.NewCronController(productUseCase)
 
-	cron := &utils.CronJob{Task: cronCtrl.RunDailyTask}
-	go cron.ScheduleDaily(9, 0)
+	// Initialize use case layer
+	cronUseCase := usecases.NewCronUseCase(productRepo, notif)
 
-	// Keep the app running
+	// Initialize controller layer
+	cronController := controllers.NewCronController(cronUseCase, logger)
+
+	// Schedule the daily cron job for sending product biller summaries
+	cronJob := &utils.CronJob{
+		Task: cronController.NotifyProductBillerSummary,
+	}
+	go cronJob.ScheduleDaily(
+		config.Service.NotificationHour,
+		config.Service.NotificationMinute,
+	)
+
+	// Keep the application running indefinitely
 	select {}
 }
