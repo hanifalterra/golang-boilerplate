@@ -10,8 +10,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"golang-boilerplate/internal/http/config"
-	"golang-boilerplate/internal/http/routes"
+	"golang-boilerplate/internal/app/http/config"
+	"golang-boilerplate/internal/app/http/routes"
 	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/logger"
 )

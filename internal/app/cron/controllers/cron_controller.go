@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"golang-boilerplate/internal/cron/usecases"
+	"golang-boilerplate/internal/app/cron/usecases"
 	"golang-boilerplate/internal/pkg/logger"
 )
 

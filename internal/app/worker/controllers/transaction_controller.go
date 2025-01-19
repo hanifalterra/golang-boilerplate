@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"golang-boilerplate/internal/app/worker/usecases"
 	"golang-boilerplate/internal/pkg/models"
-	"golang-boilerplate/internal/worker/usecases"
 )
 
 // TransactionController handles Kafka messages and parses them into Transaction structs.

@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
 
-	"golang-boilerplate/internal/http/usecases"
+	"golang-boilerplate/internal/app/http/usecases"
 	"golang-boilerplate/internal/pkg/logger"
 	"golang-boilerplate/internal/pkg/models"
 	"golang-boilerplate/internal/pkg/utils"

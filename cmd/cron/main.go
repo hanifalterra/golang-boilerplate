@@ -3,9 +3,9 @@ package main
 import (
 	"github.com/rs/zerolog/log"
 
-	"golang-boilerplate/internal/cron/config"
-	"golang-boilerplate/internal/cron/controllers"
-	"golang-boilerplate/internal/cron/usecases"
+	"golang-boilerplate/internal/app/cron/config"
+	"golang-boilerplate/internal/app/cron/controllers"
+	"golang-boilerplate/internal/app/cron/usecases"
 	"golang-boilerplate/internal/pkg/connections/cacabot"
 	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/infrastructure/notification"

@@ -3,7 +3,7 @@ package v1
 import (
 	"github.com/labstack/echo/v4"
 
-	"golang-boilerplate/internal/http/controllers"
+	"golang-boilerplate/internal/app/http/controllers"
 )
 
 func RegisterProductRoute(e *echo.Group, productController *controllers.ProductController) {

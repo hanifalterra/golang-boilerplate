@@ -6,15 +6,15 @@ import (
 
 	"github.com/rs/zerolog/log"
 
+	"golang-boilerplate/internal/app/worker/config"
+	"golang-boilerplate/internal/app/worker/controllers"
+	"golang-boilerplate/internal/app/worker/usecases"
 	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/connections/kafka"
 	"golang-boilerplate/internal/pkg/connections/redis"
 	"golang-boilerplate/internal/pkg/infrastructure/lock"
 	"golang-boilerplate/internal/pkg/infrastructure/repositories"
 	"golang-boilerplate/internal/pkg/logger"
-	"golang-boilerplate/internal/worker/config"
-	"golang-boilerplate/internal/worker/controllers"
-	"golang-boilerplate/internal/worker/usecases"
 )
 
 func main() {
