@@ -13,8 +13,6 @@ type Config struct {
 	App     config.App
 	Service Service
 	DB      config.DB
-	Redis   config.Redis
-	Lock    config.Lock
 	Cacabot config.Cacabot
 	Logger  config.Logger
 }

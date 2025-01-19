@@ -15,7 +15,6 @@ type Config struct {
 	DB      config.DB
 	Redis   config.Redis
 	Lock    config.Lock
-	Cacabot config.Cacabot
 	Logger  config.Logger
 }
 
