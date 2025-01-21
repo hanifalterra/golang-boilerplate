@@ -32,7 +32,7 @@ func (uc *CronUseCase) NotifyProductBillerSummary(ctx context.Context) error {
 	// Initialize the summary with current timestamp
 	summary := models.ProductBillerSummaryNotification{
 		DateTime: time.Now(),
-		Total:    uint(len(productBillers)),
+		Total:    len(productBillers),
 	}
 
 	// Calculate active and inactive counts

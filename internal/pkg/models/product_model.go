@@ -5,7 +5,7 @@ import (
 )
 
 type Product struct {
-	ID        uint
+	ID        int
 	Label     string
 	CreatedAt time.Time
 	CreatedBy string
@@ -49,7 +49,7 @@ func (p *UpdateProductRequest) ToEntity() *Product {
 }
 
 type ProductResponse struct {
-	ID        uint       `json:"id"`
+	ID        int        `json:"id"`
 	Label     string     `json:"label"`
 	CreatedAt time.Time  `json:"created_at"`
 	CreatedBy string     `json:"created_by"`

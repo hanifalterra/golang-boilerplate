@@ -12,9 +12,9 @@ import (
 // ProductRepository defines the interface for managing Product entities.
 type ProductRepository interface {
 	Create(ctx context.Context, product *models.Product) error
-	Update(ctx context.Context, id uint, product *models.Product) error
-	Delete(ctx context.Context, id uint) error
-	FetchOne(ctx context.Context, id uint) (*models.Product, error)
+	Update(ctx context.Context, id int, product *models.Product) error
+	Delete(ctx context.Context, id int) error
+	FetchOne(ctx context.Context, id int) (*models.Product, error)
 	FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.Product, error)
 	FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Product, *db.Pagination, error)
 }
@@ -46,7 +46,7 @@ func (r *productRepository) Create(ctx context.Context, product *models.Product)
 	return nil
 }
 
-func (r *productRepository) Update(ctx context.Context, id uint, product *models.Product) error {
+func (r *productRepository) Update(ctx context.Context, id int, product *models.Product) error {
 	const query = `
 		UPDATE products
 		SET label = :label, updated_at = NOW(6)
@@ -66,7 +66,7 @@ func (r *productRepository) Update(ctx context.Context, id uint, product *models
 	return nil
 }
 
-func (r *productRepository) Delete(ctx context.Context, id uint) error {
+func (r *productRepository) Delete(ctx context.Context, id int) error {
 	const query = `
 		UPDATE products
 		SET deleted_at = NOW(6)
@@ -96,7 +96,7 @@ func (r *productRepository) getBaseQuery(filters map[string]interface{}) (string
 
 	conditions = append(conditions, "deleted_at IS NULL")
 
-	if id, ok := filters["id"].(uint); ok {
+	if id, ok := filters["id"].(int); ok {
 		conditions = append(conditions, "id = ?")
 		args = append(args, id)
 	}
@@ -112,7 +112,7 @@ func (r *productRepository) getBaseQuery(filters map[string]interface{}) (string
 	return baseQuery, args
 }
 
-func (r *productRepository) FetchOne(ctx context.Context, id uint) (*models.Product, error) {
+func (r *productRepository) FetchOne(ctx context.Context, id int) (*models.Product, error) {
 	query, args := r.getBaseQuery(map[string]interface{}{
 		"id": id,
 	})

@@ -13,9 +13,9 @@ import (
 // ProductBillerUseCase defines the interface for the usecase layer of ProductBiller entities.
 type ProductBillerUseCase interface {
 	Create(ctx context.Context, productBiller *models.ProductBiller) error
-	Update(ctx context.Context, id uint, productBiller *models.ProductBiller) error
-	Delete(ctx context.Context, id uint) error
-	FetchOne(ctx context.Context, id uint) (*models.ProductBiller, error)
+	Update(ctx context.Context, id int, productBiller *models.ProductBiller) error
+	Delete(ctx context.Context, id int) error
+	FetchOne(ctx context.Context, id int) (*models.ProductBiller, error)
 	FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error)
 	FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, *db.Pagination, error)
 }
@@ -62,7 +62,7 @@ func (uc *productBillerUseCase) Create(ctx context.Context, productBiller *model
 	return nil
 }
 
-func (uc *productBillerUseCase) Update(ctx context.Context, id uint, productBiller *models.ProductBiller) error {
+func (uc *productBillerUseCase) Update(ctx context.Context, id int, productBiller *models.ProductBiller) error {
 	if productBiller == nil {
 		return errors.New("product biller is nil")
 	}
@@ -70,11 +70,11 @@ func (uc *productBillerUseCase) Update(ctx context.Context, id uint, productBill
 	return uc.repo.Update(ctx, id, productBiller)
 }
 
-func (uc *productBillerUseCase) Delete(ctx context.Context, id uint) error {
+func (uc *productBillerUseCase) Delete(ctx context.Context, id int) error {
 	return uc.repo.Delete(ctx, id)
 }
 
-func (uc *productBillerUseCase) FetchOne(ctx context.Context, id uint) (*models.ProductBiller, error) {
+func (uc *productBillerUseCase) FetchOne(ctx context.Context, id int) (*models.ProductBiller, error) {
 	return uc.repo.FetchOne(ctx, id)
 }
 

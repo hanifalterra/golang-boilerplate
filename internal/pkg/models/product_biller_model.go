@@ -5,9 +5,9 @@ import (
 )
 
 type ProductBiller struct {
-	ID        uint
-	ProductID uint
-	BillerID  uint
+	ID        int
+	ProductID int
+	BillerID  int
 	IsActive  bool
 	CreatedAt time.Time
 	CreatedBy string
@@ -33,8 +33,8 @@ func (pb *ProductBiller) ToResponse() *ProductBillerResponse {
 }
 
 type CreateProductBillerRequest struct {
-	ProductID uint `json:"product_id" validate:"required"`
-	BillerID  uint `json:"biller_id" validate:"required"`
+	ProductID int  `json:"product_id" validate:"required"`
+	BillerID  int  `json:"biller_id" validate:"required"`
 	IsActive  bool `json:"is_active" validate:"required"`
 }
 
@@ -57,9 +57,9 @@ func (pb *UpdateProductBillerRequest) ToEntity() *ProductBiller {
 }
 
 type ProductBillerResponse struct {
-	ID        uint       `json:"id"`
-	ProductID uint       `json:"product_id"`
-	BillerID  uint       `json:"biller_id"`
+	ID        int        `json:"id"`
+	ProductID int        `json:"product_id"`
+	BillerID  int        `json:"biller_id"`
 	IsActive  bool       `json:"is_active"`
 	CreatedAt time.Time  `json:"created_at"`
 	CreatedBy string     `json:"created_by"`

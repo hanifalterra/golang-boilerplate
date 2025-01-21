@@ -56,7 +56,7 @@ func (c *ProductBillerController) Create(ctx echo.Context) error {
 func (c *ProductBillerController) Update(ctx echo.Context) error {
 	reqCtx, logger := logger.NewAppLoggerEcho(ctx, c.logger)
 
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
@@ -71,7 +71,7 @@ func (c *ProductBillerController) Update(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := c.usecases.Update(reqCtx, uint(id), productBiller.ToEntity()); err != nil {
+	if err := c.usecases.Update(reqCtx, id, productBiller.ToEntity()); err != nil {
 		logger.Error(reqCtx, eventClassProductBiller, "Update", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -83,12 +83,12 @@ func (c *ProductBillerController) Update(ctx echo.Context) error {
 func (c *ProductBillerController) Delete(ctx echo.Context) error {
 	reqCtx, logger := logger.NewAppLoggerEcho(ctx, c.logger)
 
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	if err := c.usecases.Delete(reqCtx, uint(id)); err != nil {
+	if err := c.usecases.Delete(reqCtx, id); err != nil {
 		logger.Error(reqCtx, eventClassProductBiller, "Delete", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -100,12 +100,12 @@ func (c *ProductBillerController) Delete(ctx echo.Context) error {
 func (c *ProductBillerController) FetchOne(ctx echo.Context) error {
 	reqCtx, logger := logger.NewAppLoggerEcho(ctx, c.logger)
 
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid ID: must be a positive integer")
 	}
 
-	productBiller, err := c.usecases.FetchOne(reqCtx, uint(id))
+	productBiller, err := c.usecases.FetchOne(reqCtx, id)
 	if err != nil {
 		logger.Error(reqCtx, eventClassProductBiller, "FetchOne", err.Error())
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())

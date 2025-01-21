@@ -12,9 +12,9 @@ import (
 // BillerRepository defines the interface for managing Biller entities.
 type BillerRepository interface {
 	Create(ctx context.Context, biller *models.Biller) error
-	Update(ctx context.Context, id uint, biller *models.Biller) error
-	Delete(ctx context.Context, id uint) error
-	FetchOne(ctx context.Context, id uint) (*models.Biller, error)
+	Update(ctx context.Context, id int, biller *models.Biller) error
+	Delete(ctx context.Context, id int) error
+	FetchOne(ctx context.Context, id int) (*models.Biller, error)
 	FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.Biller, error)
 	FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Biller, *db.Pagination, error)
 }
@@ -46,7 +46,7 @@ func (r *billerRepository) Create(ctx context.Context, biller *models.Biller) er
 	return nil
 }
 
-func (r *billerRepository) Update(ctx context.Context, id uint, biller *models.Biller) error {
+func (r *billerRepository) Update(ctx context.Context, id int, biller *models.Biller) error {
 	const query = `
 		UPDATE billers
 		SET label = :label, updated_at = NOW(6)
@@ -66,7 +66,7 @@ func (r *billerRepository) Update(ctx context.Context, id uint, biller *models.B
 	return nil
 }
 
-func (r *billerRepository) Delete(ctx context.Context, id uint) error {
+func (r *billerRepository) Delete(ctx context.Context, id int) error {
 	const query = `
 		UPDATE billers
 		SET deleted_at = NOW(6)
@@ -96,7 +96,7 @@ func (r *billerRepository) getBaseQuery(filters map[string]interface{}) (string,
 
 	conditions = append(conditions, "deleted_at IS NULL")
 
-	if id, ok := filters["id"].(uint); ok {
+	if id, ok := filters["id"].(int); ok {
 		conditions = append(conditions, "id = ?")
 		args = append(args, id)
 	}
@@ -112,7 +112,7 @@ func (r *billerRepository) getBaseQuery(filters map[string]interface{}) (string,
 	return baseQuery, args
 }
 
-func (r *billerRepository) FetchOne(ctx context.Context, id uint) (*models.Biller, error) {
+func (r *billerRepository) FetchOne(ctx context.Context, id int) (*models.Biller, error) {
 	query, args := r.getBaseQuery(map[string]interface{}{
 		"id": id,
 	})

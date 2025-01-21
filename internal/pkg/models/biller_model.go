@@ -5,7 +5,7 @@ import (
 )
 
 type Biller struct {
-	ID        uint
+	ID        int
 	Label     string
 	CreatedAt time.Time
 	CreatedBy string
@@ -49,7 +49,7 @@ func (b *UpdateBillerRequest) ToEntity() *Biller {
 }
 
 type BillerResponse struct {
-	ID        uint       `json:"id"`
+	ID        int        `json:"id"`
 	Label     string     `json:"label"`
 	CreatedAt time.Time  `json:"created_at"`
 	CreatedBy string     `json:"created_by"`

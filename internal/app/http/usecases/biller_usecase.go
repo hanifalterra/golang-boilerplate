@@ -13,9 +13,9 @@ import (
 // BillerUseCase defines the interface for the usecase layer of Biller entities.
 type BillerUseCase interface {
 	Create(ctx context.Context, biller *models.Biller) error
-	Update(ctx context.Context, id uint, biller *models.Biller) error
-	Delete(ctx context.Context, id uint) error
-	FetchOne(ctx context.Context, id uint) (*models.Biller, error)
+	Update(ctx context.Context, id int, biller *models.Biller) error
+	Delete(ctx context.Context, id int) error
+	FetchOne(ctx context.Context, id int) (*models.Biller, error)
 	FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.Biller, error)
 	FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.Biller, *db.Pagination, error)
 }
@@ -42,7 +42,7 @@ func (uc *billerUseCase) Create(ctx context.Context, biller *models.Biller) erro
 	return uc.repo.Create(ctx, biller)
 }
 
-func (uc *billerUseCase) Update(ctx context.Context, id uint, biller *models.Biller) error {
+func (uc *billerUseCase) Update(ctx context.Context, id int, biller *models.Biller) error {
 	if biller == nil {
 		return errors.New("biller is nil")
 	}
@@ -50,7 +50,7 @@ func (uc *billerUseCase) Update(ctx context.Context, id uint, biller *models.Bil
 	return uc.repo.Update(ctx, id, biller)
 }
 
-func (uc *billerUseCase) Delete(ctx context.Context, id uint) error {
+func (uc *billerUseCase) Delete(ctx context.Context, id int) error {
 	err := uc.uow.Execute(ctx, func(uow repositories.UnitOfWork) error {
 		if err := uow.ProductBillerRepo().DeleteByBillerID(ctx, id); err != nil {
 			return fmt.Errorf("failed to delete product billers for biller ID %d: %w", id, err)
@@ -70,7 +70,7 @@ func (uc *billerUseCase) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (uc *billerUseCase) FetchOne(ctx context.Context, id uint) (*models.Biller, error) {
+func (uc *billerUseCase) FetchOne(ctx context.Context, id int) (*models.Biller, error) {
 	return uc.repo.FetchOne(ctx, id)
 }
 

@@ -16,11 +16,11 @@ import (
 // ProductBillerRepository defines the interface for managing ProductBiller entities.
 type ProductBillerRepository interface {
 	Create(ctx context.Context, productBiller *models.ProductBiller) error
-	Update(ctx context.Context, id uint, productBiller *models.ProductBiller) error
-	Delete(ctx context.Context, id uint) error
-	DeleteByProductID(ctx context.Context, productID uint) error
-	DeleteByBillerID(ctx context.Context, billerID uint) error
-	FetchOne(ctx context.Context, id uint) (*models.ProductBiller, error)
+	Update(ctx context.Context, id int, productBiller *models.ProductBiller) error
+	Delete(ctx context.Context, id int) error
+	DeleteByProductID(ctx context.Context, productID int) error
+	DeleteByBillerID(ctx context.Context, billerID int) error
+	FetchOne(ctx context.Context, id int) (*models.ProductBiller, error)
 	FetchMany(ctx context.Context, filter map[string]interface{}) ([]*models.ProductBiller, error)
 	FetchManyWithPagination(ctx context.Context, filter map[string]interface{}, page, limit int) ([]*models.ProductBiller, *db.Pagination, error)
 }
@@ -57,7 +57,7 @@ func (r *productBillerRepository) Create(ctx context.Context, productBiller *mod
 	return nil
 }
 
-func (r *productBillerRepository) Update(ctx context.Context, id uint, productBiller *models.ProductBiller) error {
+func (r *productBillerRepository) Update(ctx context.Context, id int, productBiller *models.ProductBiller) error {
 	const query = `
 		UPDATE product_billers
 		SET is_active = :is_active, updated_at = NOW(6)
@@ -77,7 +77,7 @@ func (r *productBillerRepository) Update(ctx context.Context, id uint, productBi
 	return nil
 }
 
-func (r *productBillerRepository) Delete(ctx context.Context, id uint) error {
+func (r *productBillerRepository) Delete(ctx context.Context, id int) error {
 	const query = `
 		UPDATE product_billers
 		SET deleted_at = NOW(6)
@@ -96,7 +96,7 @@ func (r *productBillerRepository) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func (r *productBillerRepository) DeleteByProductID(ctx context.Context, productID uint) error {
+func (r *productBillerRepository) DeleteByProductID(ctx context.Context, productID int) error {
 	const query = `
 		UPDATE product_billers
 		SET deleted_at = NOW(6)
@@ -115,7 +115,7 @@ func (r *productBillerRepository) DeleteByProductID(ctx context.Context, product
 	return nil
 }
 
-func (r *productBillerRepository) DeleteByBillerID(ctx context.Context, billerID uint) error {
+func (r *productBillerRepository) DeleteByBillerID(ctx context.Context, billerID int) error {
 	const query = `
 		UPDATE product_billers
 		SET deleted_at = NOW(6)
@@ -145,11 +145,15 @@ func (r *productBillerRepository) getBaseQuery(filters map[string]interface{}) (
 
 	conditions = append(conditions, "deleted_at IS NULL")
 
-	if productID, ok := filters["product_id"].(uint); ok {
+	if id, ok := filters["id"].(int); ok {
+		conditions = append(conditions, "id = ?")
+		args = append(args, id)
+	}
+	if productID, ok := filters["product_id"].(int); ok {
 		conditions = append(conditions, "product_id = ?")
 		args = append(args, productID)
 	}
-	if billerID, ok := filters["biller_id"].(uint); ok {
+	if billerID, ok := filters["biller_id"].(int); ok {
 		conditions = append(conditions, "biller_id = ?")
 		args = append(args, billerID)
 	}
@@ -165,7 +169,7 @@ func (r *productBillerRepository) getBaseQuery(filters map[string]interface{}) (
 	return baseQuery, args
 }
 
-func (r *productBillerRepository) FetchOne(ctx context.Context, id uint) (*models.ProductBiller, error) {
+func (r *productBillerRepository) FetchOne(ctx context.Context, id int) (*models.ProductBiller, error) {
 	query, args := r.getBaseQuery(map[string]interface{}{
 		"id": id,
 	})
