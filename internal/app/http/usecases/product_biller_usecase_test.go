@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"golang-boilerplate/internal/app/http/usecases"
+	"golang-boilerplate/internal/pkg/connections/db"
 	"golang-boilerplate/internal/pkg/infrastructure/repositories/mocks"
 	"golang-boilerplate/internal/pkg/models"
 )
@@ -117,4 +118,189 @@ func TestProductBillerUseCase_Create(t *testing.T) {
 			repo.AssertExpectations(t)
 		})
 	}
+}
+
+func TestProductBillerUseCase_Update(t *testing.T) {
+	ctx := context.Background()
+
+	id := 1
+	updatedProductBiller := &models.ProductBiller{IsActive: true}
+
+	t.Run("success", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		mockProductBillerRepo.On("Update", ctx, id, updatedProductBiller).Return(nil)
+
+		err := useCase.Update(ctx, id, updatedProductBiller)
+		assert.NoError(t, err)
+
+		mockProductBillerRepo.AssertCalled(t, "Update", ctx, id, updatedProductBiller)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		mockProductBillerRepo.On("Update", ctx, id, updatedProductBiller).Return(errors.New("update failed"))
+
+		err := useCase.Update(ctx, id, updatedProductBiller)
+		assert.Error(t, err)
+
+		mockProductBillerRepo.AssertCalled(t, "Update", ctx, id, updatedProductBiller)
+	})
+
+	t.Run("nil product biller", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		err := useCase.Update(ctx, id, nil)
+		assert.Error(t, err)
+		assert.Equal(t, "product biller is nil", err.Error())
+
+		mockProductBillerRepo.AssertNotCalled(t, "Update", mock.Anything, mock.Anything, mock.Anything)
+	})
+}
+
+func TestProductBillerUseCase_Delete(t *testing.T) {
+	ctx := context.Background()
+
+	id := 1
+
+	t.Run("success", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		mockProductBillerRepo.On("Delete", ctx, id).Return(nil)
+
+		err := useCase.Delete(ctx, id)
+		assert.NoError(t, err)
+
+		mockProductBillerRepo.AssertCalled(t, "Delete", ctx, id)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		mockProductBillerRepo.On("Delete", ctx, id).Return(errors.New("delete failed"))
+
+		err := useCase.Delete(ctx, id)
+		assert.Error(t, err)
+
+		mockProductBillerRepo.AssertCalled(t, "Delete", ctx, id)
+	})
+}
+
+func TestProductBillerUseCase_FetchOne(t *testing.T) {
+	ctx := context.Background()
+
+	id := 1
+	expected := &models.ProductBiller{ID: id, ProductID: 1, BillerID: 1, IsActive: true}
+
+	t.Run("success", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		mockProductBillerRepo.On("FetchOne", ctx, id).Return(expected, nil)
+
+		result, err := useCase.FetchOne(ctx, id)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+
+		mockProductBillerRepo.AssertCalled(t, "FetchOne", ctx, id)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		mockProductBillerRepo.On("FetchOne", ctx, id).Return(nil, errors.New("not found"))
+
+		result, err := useCase.FetchOne(ctx, id)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+
+		mockProductBillerRepo.AssertCalled(t, "FetchOne", ctx, id)
+	})
+}
+
+func TestProductBillerUseCase_FetchMany(t *testing.T) {
+	ctx := context.Background()
+
+	filter := map[string]interface{}{"label": "Test"}
+	expected := []*models.ProductBiller{
+		{ID: 1, ProductID: 1, BillerID: 1, IsActive: true},
+		{ID: 2, ProductID: 2, BillerID: 2, IsActive: false},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		mockProductBillerRepo.On("FetchMany", ctx, filter).Return(expected, nil)
+
+		result, err := useCase.FetchMany(ctx, filter)
+		assert.NoError(t, err)
+		assert.Equal(t, expected, result)
+
+		mockProductBillerRepo.AssertCalled(t, "FetchMany", ctx, filter)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		mockProductBillerRepo.On("FetchMany", ctx, filter).Return(nil, errors.New("fetch failed"))
+
+		result, err := useCase.FetchMany(ctx, filter)
+		assert.Error(t, err)
+		assert.Nil(t, result)
+
+		mockProductBillerRepo.AssertCalled(t, "FetchMany", ctx, filter)
+	})
+}
+
+func TestProductBillerUseCase_FetchManyWithPagination(t *testing.T) {
+	ctx := context.Background()
+
+	filter := map[string]interface{}{"label": "Test"}
+	page := 1
+	limit := 10
+	expectedData := []*models.ProductBiller{
+		{ID: 1, ProductID: 1, BillerID: 1, IsActive: true},
+		{ID: 2, ProductID: 2, BillerID: 2, IsActive: false},
+	}
+	expectedPagination := &db.Pagination{
+		Limit: limit,
+		Page:  page,
+	}
+
+	t.Run("success", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		mockProductBillerRepo.On("FetchManyWithPagination", ctx, filter, page, limit).Return(expectedData, expectedPagination, nil)
+
+		data, pagination, err := useCase.FetchManyWithPagination(ctx, filter, page, limit)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedData, data)
+		assert.Equal(t, expectedPagination, pagination)
+
+		mockProductBillerRepo.AssertCalled(t, "FetchManyWithPagination", ctx, filter, page, limit)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		mockProductBillerRepo := new(mocks.MockProductBillerRepository)
+		useCase := usecases.NewProductBillerUseCase(mockProductBillerRepo, nil, nil)
+
+		mockProductBillerRepo.On("FetchManyWithPagination", ctx, filter, page, limit).Return(nil, nil, errors.New("fetch failed"))
+
+		data, pagination, err := useCase.FetchManyWithPagination(ctx, filter, page, limit)
+		assert.Error(t, err)
+		assert.Nil(t, data)
+		assert.Nil(t, pagination)
+
+		mockProductBillerRepo.AssertCalled(t, "FetchManyWithPagination", ctx, filter, page, limit)
+	})
 }
